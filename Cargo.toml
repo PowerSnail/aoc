@@ -1,8 +1,10 @@
 [package]
-name = "AoC2021"
+name = "aoc_2021"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+itertools = "0.10"
+clap = { version="3.0.0-beta.5" }
