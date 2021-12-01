@@ -1,6 +1,6 @@
+use clap::Parser;
 use itertools::Itertools;
 use std::io::{self, prelude::*};
-use clap::Parser;
 
 #[derive(Parser)]
 #[clap(version = "1.0")]
@@ -9,12 +9,22 @@ struct Opts {
     part: u32,
 }
 
-fn day1_part1(lines: impl Iterator<Item = String>) -> usize
-{
-    let (i1, i2) = lines.map(|s| s.parse::<u32>().unwrap()).tee();
-    i1.zip(i2.skip(1))
+fn day1_part1(lines: impl Iterator<Item = String>) -> usize {
+    lines
+        .map(|s| s.parse::<u32>().unwrap())
+        .tuple_windows()
         .filter(|(prev, next)| next > prev)
         .count()
+}
+
+fn day1_part2(lines: impl Iterator<Item = String>) -> usize {
+    lines
+    .map(|s| s.parse::<u32>().unwrap())
+    .tuple_windows()
+    .map(|(n1, n2, n3)| n1 + n2 + n3)
+    .tuple_windows()
+    .filter(|(prev, next)| next > prev)
+    .count()
 }
 
 fn main() {
@@ -23,6 +33,7 @@ fn main() {
     let input = stdin.lock().lines().map(|line| line.unwrap());
     match opts {
         Opts { day: 1, part: 1 } => println!("{}", day1_part1(input)),
+        Opts { day: 1, part: 2 } => println!("{}", day1_part2(input)),
         _ => println!("Unimplemented: day{}, part{}", opts.day, opts.part),
     }
 }
