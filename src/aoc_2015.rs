@@ -5,7 +5,7 @@
 use std::{collections::HashSet, io::Read};
 
 use itertools::Itertools;
-use nom::{bytes::complete::tag, multi::separated_list0};
+use nom::{bytes::complete::tag, multi::separated_list0, AsChar, HexDisplay};
 
 use crate::parsers::parse_i64;
 
@@ -127,11 +127,35 @@ pub fn day3_part2(input: std::io::Stdin) {
 }
 
 pub fn day4_part1(input: std::io::Stdin) {
-    todo!()
+    let key : Vec<u8> = input.bytes().map(Result::unwrap).filter(|c| c.is_alphanum()).collect();
+
+    let i = (1..i32::MAX)
+        .filter(|i| {
+            let crack = [&key, i.to_string().as_bytes()].concat();
+            let digest = md5::compute(&crack);
+            format!("{:x}", digest).starts_with("00000")
+        })
+        .next()
+        .unwrap();
+
+    println!("{}", i);
 }
+
 pub fn day4_part2(input: std::io::Stdin) {
-    todo!()
+    let key : Vec<u8> = input.bytes().map(Result::unwrap).filter(|c| c.is_alphanum()).collect();
+
+    let i = (1..i32::MAX)
+        .filter(|i| {
+            let crack = [&key, i.to_string().as_bytes()].concat();
+            let digest = md5::compute(&crack);
+            format!("{:x}", digest).starts_with("000000")
+        })
+        .next()
+        .unwrap();
+
+    println!("{}", i);
 }
+
 pub fn day5_part1(input: std::io::Stdin) {
     todo!()
 }
