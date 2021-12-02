@@ -12,6 +12,8 @@ pub use nom::branch::alt;
 pub use nom::bytes::complete::{tag, take_while};
 pub use nom::IResult;
 
+use crate::parsers::parse_i64;
+
 // --- Parsings ---
 
 #[derive(Debug)]
@@ -49,17 +51,7 @@ enum Instruction {
     Down(i64),
 }
 
-fn is_hex_digit(c: char) -> bool {
-    c.is_digit(10)
-}
 
-fn parse_i64(line: &str) -> IResult<&str, i64> {
-    let (input, digits) = take_while(is_hex_digit)(line)?;
-    match digits.parse() {
-        Ok(n) => Ok((input, n)),
-        Err(_) => fail(input),
-    }
-}
 
 fn parse_instruction(line: &str) -> Instruction {
     let (_, (instruction, step)) = separated_pair(
