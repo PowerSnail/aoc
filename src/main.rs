@@ -19,12 +19,12 @@ fn day1_part1(lines: impl Iterator<Item = String>) -> usize {
 
 fn day1_part2(lines: impl Iterator<Item = String>) -> usize {
     lines
-    .map(|s| s.parse::<u32>().unwrap())
-    .tuple_windows()
-    .map(|(n1, n2, n3)| n1 + n2 + n3)
-    .tuple_windows()
-    .filter(|(prev, next)| next > prev)
-    .count()
+        .map(|s| s.parse::<u32>().unwrap())
+        .tuple_windows()
+        .map(|(n1, n2, n3)| n1 + n2 + n3)
+        .tuple_windows()
+        .filter(|(prev, next)| next > prev)
+        .count()
 }
 
 fn main() {
