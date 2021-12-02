@@ -1,3 +1,8 @@
+// Copyright (c) 2021 PowerSnail
+// 
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
+
 use clap::Parser;
 use itertools::Itertools;
 use nom::character::complete::char;
