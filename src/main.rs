@@ -17,6 +17,7 @@ fn main() {
 
     match (opts.year, opts.day, opts.part) {
         (2015, 1, 1) =>aoc_2015::day1_part1(input),
+        (2015, 1, 2) =>aoc_2015::day1_part2(input),
         (2021, 1, 1) =>aoc_2021::day1_part1(input),
         (2021, 1, 2) =>aoc_2021::day1_part1(input),
         (2021, 2, 1) =>aoc_2021::day2_part1(input),
