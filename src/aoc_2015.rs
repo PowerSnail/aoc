@@ -156,9 +156,20 @@ pub fn day4_part2(input: std::io::Stdin) {
     println!("{}", i);
 }
 
-pub fn day5_part1(input: std::io::Stdin) {
+fn is_nice(line: &String) -> bool {
+    let has_three_vowels = line.chars().filter(|&c| match c {
+        'a' | 'e' | 'i' | 'o' | 'u' => true,
+        _ => false
+    }).count() >= 3;
     todo!()
 }
+
+pub fn day5_part1(input: std::io::Stdin) {
+    // input.lines().map(Result::unwrap)
+    //     .filter(|l|)
+    todo!()
+}
+
 pub fn day5_part2(input: std::io::Stdin) {
     todo!()
 }
