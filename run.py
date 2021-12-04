@@ -1,10 +1,14 @@
 import subprocess as sp
 import sys
 import pathlib
+import functools
+
+shell = functools.partial(sp.run, shell=True, check=True, text=True)
 
 year = int(sys.argv[1])
 day = int(sys.argv[2])
 part = int(sys.argv[3])
+to_save = "-s" in sys.argv
 
 out_dir = pathlib.Path(f"outputs/{year}")
 out_dir.mkdir(parents=True, exist_ok=True)
@@ -14,10 +18,15 @@ in_dir = pathlib.Path(f"inputs/{year}")
 in_dir.mkdir(parents=True, exist_ok=True)
 in_file = in_dir / f"day{day}.txt"
 
-sp.run("cargo build --release", shell=True, check=True, stdout=sp.PIPE, stderr=sp.PIPE)
-sp.run(
-    f"target/release/aoc {year} {day} {part} <{in_file} | tee {out_file}",
-    shell=True,
-    check=True,
-)
-sp.run(f"cat {out_file} | xsel -ib", shell=True, check=True)
+shell("cargo build --release", stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+answer = shell(f"target/release/aoc {year} {day} {part} <{in_file}", stdout=sp.PIPE).stdout
+
+print(answer)
+shell("xsel -ib", input=answer)
+
+if to_save:
+    with out_file.open("w") as file:
+        file.write(answer)
+else:
+    if out_file.exists():
+        process = shell(f"diff {out_file} - || true", input=answer)
