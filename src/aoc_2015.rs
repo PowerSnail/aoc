@@ -197,8 +197,7 @@ pub fn day5_part2(input: std::io::Stdin) {
         .filter(|line| {
             let two_grams = line
                 .bytes()
-                .tuple_windows()
-                .map(|(x, y)| (x, y))
+                .tuple_windows::<(u8, u8)>()
                 .enumerate()
                 .scan(HashMap::new(), |first_positions, (i, pair)| {
                     if !first_positions.contains_key(&pair) {
