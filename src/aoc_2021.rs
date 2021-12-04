@@ -3,8 +3,6 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-use std::io::BufRead;
-
 use itertools::Itertools;
 use nom::character::complete::char;
 use nom::sequence::separated_pair;
