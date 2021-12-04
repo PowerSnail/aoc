@@ -5,7 +5,6 @@
 
 use itertools::Itertools;
 use nom::character::complete::char;
-use nom::combinator::fail;
 use nom::sequence::separated_pair;
 
 pub use nom::branch::alt;
