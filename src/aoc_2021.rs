@@ -3,15 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-use itertools::Itertools;
-use nom::character::complete::char;
-use nom::sequence::separated_pair;
-
-pub use nom::branch::alt;
-pub use nom::bytes::complete::{tag, take_while};
-pub use nom::IResult;
-
-use crate::parsers::parse_i64;
+use crate::{prelude::*, std_iter};
 
 // --- Parsings ---
 
@@ -68,10 +60,8 @@ fn parse_instruction(line: &str) -> Instruction {
 
 // --- Solutions ---
 
-pub fn day1_part1(input: std::io::Stdin) {
-    let count = input
-        .lines()
-        .map(Result::unwrap)
+pub fn day1_part1() {
+    let count = std_iter!(Lines)
         .map(|s| s.parse::<u32>().unwrap())
         .tuple_windows()
         .filter(|(prev, next)| next > prev)
@@ -79,10 +69,8 @@ pub fn day1_part1(input: std::io::Stdin) {
     println!("{}", count);
 }
 
-pub fn day1_part2(input: std::io::Stdin) {
-    let count = input
-        .lines()
-        .map(Result::unwrap)
+pub fn day1_part2() {
+    let count = std_iter!(Lines)
         .map(|s| s.parse::<u32>().unwrap())
         .tuple_windows()
         .map(|(n1, n2, n3)| n1 + n2 + n3)
@@ -92,29 +80,27 @@ pub fn day1_part2(input: std::io::Stdin) {
     println!("{}", count);
 }
 
-pub fn day2_part1(input: std::io::Stdin) {
-    let p = input
-        .lines()
-        .map(Result::unwrap)
-        .map(|s| parse_instruction(&s))
-        .fold(Ship::default(), |ship, instruction| match instruction {
+pub fn day2_part1() {
+    let p = std_iter!(Lines).map(|s| parse_instruction(&s)).fold(
+        Ship::default(),
+        |ship, instruction| match instruction {
             Instruction::Up(n) => ship.move_y(-n),
             Instruction::Down(n) => ship.move_y(n),
             Instruction::Forward(n) => ship.move_x(n),
-        });
+        },
+    );
     println!("{}", p.x * p.y);
 }
 
-pub fn day2_part2(input: std::io::Stdin) {
-    let p = input
-        .lines()
-        .map(Result::unwrap)
-        .map(|s| parse_instruction(&s))
-        .fold(Ship::default(), |ship, instruction| match instruction {
+pub fn day2_part2() {
+    let p = std_iter!(Lines).map(|s| parse_instruction(&s)).fold(
+        Ship::default(),
+        |ship, instruction| match instruction {
             Instruction::Up(n) => ship.move_aim(-n),
             Instruction::Down(n) => ship.move_aim(n),
             Instruction::Forward(n) => ship.move_x(n).move_y(ship.aim * n),
-        });
+        },
+    );
     println!("{}", p.x * p.y);
 }
 
@@ -126,10 +112,8 @@ fn parse_row_bits(row: &str) -> Vec<u8> {
     row.bytes().map(|c| c - b'0').collect_vec()
 }
 
-pub fn day3_part1(input: std::io::Stdin) {
-    let numbers = input
-        .lines()
-        .map(Result::unwrap)
+pub fn day3_part1() {
+    let numbers = std_iter!(Lines)
         .map(|s| parse_row_bits(&s))
         .collect::<Vec<_>>();
     let width = numbers[0].len();
@@ -171,10 +155,8 @@ fn filter_grid(
     filter_grid(grid, remaining_rows, column + 1, filter_function)
 }
 
-pub fn day3_part2(input: std::io::Stdin) {
-    let grid = input
-        .lines()
-        .map(Result::unwrap)
+pub fn day3_part2() {
+    let grid = std_iter!(Lines)
         .map(|line| parse_row_bits(&line))
         .collect_vec();
 
@@ -211,17 +193,15 @@ fn has_bingo(board: &[u32]) -> bool {
     return false;
 }
 
-pub fn day4_part1(input: std::io::Stdin) {
-    let mut lines = input.lines();
+pub fn day4_part1() {
+    let mut lines = std_iter!(Lines);
     let num_sequence = lines
         .next()
-        .unwrap()
         .unwrap()
         .split(",")
         .map(|string| string.parse::<u32>().unwrap())
         .collect_vec();
     let mut boards: Vec<u32> = lines
-        .map(Result::unwrap)
         .map(|l| {
             l.split(" ")
                 .filter_map(|l| l.parse::<u32>().ok())
@@ -250,17 +230,15 @@ pub fn day4_part1(input: std::io::Stdin) {
     }
 }
 
-pub fn day4_part2(input: std::io::Stdin) {
-    let mut lines = input.lines();
+pub fn day4_part2() {
+    let mut lines = std_iter!(Lines);
     let num_sequence = lines
         .next()
-        .unwrap()
         .unwrap()
         .split(",")
         .map(|string| string.parse::<u32>().unwrap())
         .collect_vec();
     let mut boards: Vec<u32> = lines
-        .map(Result::unwrap)
         .map(|l| {
             l.split(" ")
                 .filter_map(|l| l.parse::<u32>().ok())
@@ -298,132 +276,132 @@ pub fn day4_part2(input: std::io::Stdin) {
     }
 }
 
-pub fn day5_part1(_: std::io::Stdin) {
+pub fn day5_part1() {
     // input.lines().map(Result::unwrap)
     //     .filter(|l|)
     todo!()
 }
 
-pub fn day5_part2(_: std::io::Stdin) {
+pub fn day5_part2() {
     todo!()
 }
-pub fn day6_part1(_: std::io::Stdin) {
+pub fn day6_part1() {
     todo!()
 }
-pub fn day6_part2(_: std::io::Stdin) {
+pub fn day6_part2() {
     todo!()
 }
-pub fn day7_part1(_: std::io::Stdin) {
+pub fn day7_part1() {
     todo!()
 }
-pub fn day7_part2(_: std::io::Stdin) {
+pub fn day7_part2() {
     todo!()
 }
-pub fn day8_part1(_: std::io::Stdin) {
+pub fn day8_part1() {
     todo!()
 }
-pub fn day8_part2(_: std::io::Stdin) {
+pub fn day8_part2() {
     todo!()
 }
-pub fn day9_part1(_: std::io::Stdin) {
+pub fn day9_part1() {
     todo!()
 }
-pub fn day9_part2(_: std::io::Stdin) {
+pub fn day9_part2() {
     todo!()
 }
-pub fn day10_part1(_: std::io::Stdin) {
+pub fn day10_part1() {
     todo!()
 }
-pub fn day10_part2(_: std::io::Stdin) {
+pub fn day10_part2() {
     todo!()
 }
-pub fn day11_part1(_: std::io::Stdin) {
+pub fn day11_part1() {
     todo!()
 }
-pub fn day11_part2(_: std::io::Stdin) {
+pub fn day11_part2() {
     todo!()
 }
-pub fn day12_part1(_: std::io::Stdin) {
+pub fn day12_part1() {
     todo!()
 }
-pub fn day12_part2(_: std::io::Stdin) {
+pub fn day12_part2() {
     todo!()
 }
-pub fn day13_part1(_: std::io::Stdin) {
+pub fn day13_part1() {
     todo!()
 }
-pub fn day13_part2(_: std::io::Stdin) {
+pub fn day13_part2() {
     todo!()
 }
-pub fn day14_part1(_: std::io::Stdin) {
+pub fn day14_part1() {
     todo!()
 }
-pub fn day14_part2(_: std::io::Stdin) {
+pub fn day14_part2() {
     todo!()
 }
-pub fn day15_part1(_: std::io::Stdin) {
+pub fn day15_part1() {
     todo!()
 }
-pub fn day15_part2(_: std::io::Stdin) {
+pub fn day15_part2() {
     todo!()
 }
-pub fn day16_part1(_: std::io::Stdin) {
+pub fn day16_part1() {
     todo!()
 }
-pub fn day16_part2(_: std::io::Stdin) {
+pub fn day16_part2() {
     todo!()
 }
-pub fn day17_part1(_: std::io::Stdin) {
+pub fn day17_part1() {
     todo!()
 }
-pub fn day17_part2(_: std::io::Stdin) {
+pub fn day17_part2() {
     todo!()
 }
-pub fn day18_part1(_: std::io::Stdin) {
+pub fn day18_part1() {
     todo!()
 }
-pub fn day18_part2(_: std::io::Stdin) {
+pub fn day18_part2() {
     todo!()
 }
-pub fn day19_part1(_: std::io::Stdin) {
+pub fn day19_part1() {
     todo!()
 }
-pub fn day19_part2(_: std::io::Stdin) {
+pub fn day19_part2() {
     todo!()
 }
-pub fn day20_part1(_: std::io::Stdin) {
+pub fn day20_part1() {
     todo!()
 }
-pub fn day20_part2(_: std::io::Stdin) {
+pub fn day20_part2() {
     todo!()
 }
-pub fn day21_part1(_: std::io::Stdin) {
+pub fn day21_part1() {
     todo!()
 }
-pub fn day21_part2(_: std::io::Stdin) {
+pub fn day21_part2() {
     todo!()
 }
-pub fn day22_part1(_: std::io::Stdin) {
+pub fn day22_part1() {
     todo!()
 }
-pub fn day22_part2(_: std::io::Stdin) {
+pub fn day22_part2() {
     todo!()
 }
-pub fn day23_part1(_: std::io::Stdin) {
+pub fn day23_part1() {
     todo!()
 }
-pub fn day23_part2(_: std::io::Stdin) {
+pub fn day23_part2() {
     todo!()
 }
-pub fn day24_part1(_: std::io::Stdin) {
+pub fn day24_part1() {
     todo!()
 }
-pub fn day24_part2(_: std::io::Stdin) {
+pub fn day24_part2() {
     todo!()
 }
-pub fn day25_part1(_: std::io::Stdin) {
+pub fn day25_part1() {
     todo!()
 }
-pub fn day25_part2(_: std::io::Stdin) {
+pub fn day25_part2() {
     todo!()
 }
