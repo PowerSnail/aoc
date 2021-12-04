@@ -2,10 +2,10 @@
 //
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
-use std::{collections::HashSet, io::Read};
+use std::{collections::HashMap, io::Read};
 
 use itertools::Itertools;
-use nom::{bytes::complete::tag, multi::separated_list0, AsChar, HexDisplay};
+use nom::{bytes::complete::tag, multi::separated_list0, AsChar};
 
 use crate::parsers::parse_i64;
 
@@ -127,7 +127,11 @@ pub fn day3_part2(input: std::io::Stdin) {
 }
 
 pub fn day4_part1(input: std::io::Stdin) {
-    let key : Vec<u8> = input.bytes().map(Result::unwrap).filter(|c| c.is_alphanum()).collect();
+    let key: Vec<u8> = input
+        .bytes()
+        .map(Result::unwrap)
+        .filter(|c| c.is_alphanum())
+        .collect();
 
     let i = (1..i32::MAX)
         .filter(|i| {
@@ -142,7 +146,11 @@ pub fn day4_part1(input: std::io::Stdin) {
 }
 
 pub fn day4_part2(input: std::io::Stdin) {
-    let key : Vec<u8> = input.bytes().map(Result::unwrap).filter(|c| c.is_alphanum()).collect();
+    let key: Vec<u8> = input
+        .bytes()
+        .map(Result::unwrap)
+        .filter(|c| c.is_alphanum())
+        .collect();
 
     let i = (1..i32::MAX)
         .filter(|i| {
@@ -156,140 +164,174 @@ pub fn day4_part2(input: std::io::Stdin) {
     println!("{}", i);
 }
 
-fn is_nice(line: &String) -> bool {
-    let has_three_vowels = line.chars().filter(|&c| match c {
-        'a' | 'e' | 'i' | 'o' | 'u' => true,
-        _ => false
-    }).count() >= 3;
-    todo!()
-}
-
 pub fn day5_part1(input: std::io::Stdin) {
-    // input.lines().map(Result::unwrap)
-    //     .filter(|l|)
-    todo!()
+    let count = input
+        .lines()
+        .map(Result::unwrap)
+        .filter(|line| {
+            let vowel_count = line
+                .bytes()
+                .filter(|&b| match b {
+                    b'a' | b'e' | b'i' | b'o' | b'u' => true,
+                    _ => false,
+                })
+                .count();
+
+            let twice_in_a_row = line.bytes().tuple_windows().any(|(x, y)| x == y);
+
+            let contains_bad_sub = line.bytes().tuple_windows().any(|(x, y)| match &[x, y] {
+                b"ab" | b"cd" | b"pq" | b"xy" => true,
+                _ => false,
+            });
+
+            (vowel_count >= 3) && twice_in_a_row && (!contains_bad_sub)
+        })
+        .count();
+    println!("{}", count);
 }
 
 pub fn day5_part2(input: std::io::Stdin) {
+    let count = input
+        .lines()
+        .map(Result::unwrap)
+        .filter(|line| {
+            let two_grams = line
+                .bytes()
+                .tuple_windows()
+                .map(|(x, y)| (x, y))
+                .enumerate()
+                .scan(HashMap::new(), |first_positions, (i, pair)| {
+                    if !first_positions.contains_key(&pair) {
+                        first_positions.insert(pair, i);
+                    }
+                    let first_pos = first_positions.get(&pair).unwrap();
+                    Some(i - first_pos > 1)
+                })
+                .any(|x| x);
+
+            let sandwiched = line.bytes().tuple_windows().any(|(x, _, z)| x == z);
+            sandwiched && two_grams
+        })
+        .count();
+    println!("{}", count);
+}
+pub fn day6_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day6_part1(input: std::io::Stdin) {
+pub fn day6_part2(_: std::io::Stdin) {
     todo!()
 }
-pub fn day6_part2(input: std::io::Stdin) {
+pub fn day7_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day7_part1(input: std::io::Stdin) {
+pub fn day7_part2(_: std::io::Stdin) {
     todo!()
 }
-pub fn day7_part2(input: std::io::Stdin) {
+pub fn day8_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day8_part1(input: std::io::Stdin) {
+pub fn day8_part2(_: std::io::Stdin) {
     todo!()
 }
-pub fn day8_part2(input: std::io::Stdin) {
+pub fn day9_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day9_part1(input: std::io::Stdin) {
+pub fn day9_part2(_: std::io::Stdin) {
     todo!()
 }
-pub fn day9_part2(input: std::io::Stdin) {
+pub fn day10_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day10_part1(input: std::io::Stdin) {
+pub fn day10_part2(_: std::io::Stdin) {
     todo!()
 }
-pub fn day10_part2(input: std::io::Stdin) {
+pub fn day11_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day11_part1(input: std::io::Stdin) {
+pub fn day11_part2(_: std::io::Stdin) {
     todo!()
 }
-pub fn day11_part2(input: std::io::Stdin) {
+pub fn day12_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day12_part1(input: std::io::Stdin) {
+pub fn day12_part2(_: std::io::Stdin) {
     todo!()
 }
-pub fn day12_part2(input: std::io::Stdin) {
+pub fn day13_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day13_part1(input: std::io::Stdin) {
+pub fn day13_part2(_: std::io::Stdin) {
     todo!()
 }
-pub fn day13_part2(input: std::io::Stdin) {
+pub fn day14_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day14_part1(input: std::io::Stdin) {
+pub fn day14_part2(_: std::io::Stdin) {
     todo!()
 }
-pub fn day14_part2(input: std::io::Stdin) {
+pub fn day15_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day15_part1(input: std::io::Stdin) {
+pub fn day15_part2(_: std::io::Stdin) {
     todo!()
 }
-pub fn day15_part2(input: std::io::Stdin) {
+pub fn day16_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day16_part1(input: std::io::Stdin) {
+pub fn day16_part2(_: std::io::Stdin) {
     todo!()
 }
-pub fn day16_part2(input: std::io::Stdin) {
+pub fn day17_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day17_part1(input: std::io::Stdin) {
+pub fn day17_part2(_: std::io::Stdin) {
     todo!()
 }
-pub fn day17_part2(input: std::io::Stdin) {
+pub fn day18_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day18_part1(input: std::io::Stdin) {
+pub fn day18_part2(_: std::io::Stdin) {
     todo!()
 }
-pub fn day18_part2(input: std::io::Stdin) {
+pub fn day19_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day19_part1(input: std::io::Stdin) {
+pub fn day19_part2(_: std::io::Stdin) {
     todo!()
 }
-pub fn day19_part2(input: std::io::Stdin) {
+pub fn day20_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day20_part1(input: std::io::Stdin) {
+pub fn day20_part2(_: std::io::Stdin) {
     todo!()
 }
-pub fn day20_part2(input: std::io::Stdin) {
+pub fn day21_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day21_part1(input: std::io::Stdin) {
+pub fn day21_part2(_: std::io::Stdin) {
     todo!()
 }
-pub fn day21_part2(input: std::io::Stdin) {
+pub fn day22_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day22_part1(input: std::io::Stdin) {
+pub fn day22_part2(_: std::io::Stdin) {
     todo!()
 }
-pub fn day22_part2(input: std::io::Stdin) {
+pub fn day23_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day23_part1(input: std::io::Stdin) {
+pub fn day23_part2(_: std::io::Stdin) {
     todo!()
 }
-pub fn day23_part2(input: std::io::Stdin) {
+pub fn day24_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day24_part1(input: std::io::Stdin) {
+pub fn day24_part2(_: std::io::Stdin) {
     todo!()
 }
-pub fn day24_part2(input: std::io::Stdin) {
+pub fn day25_part1(_: std::io::Stdin) {
     todo!()
 }
-pub fn day25_part1(input: std::io::Stdin) {
-    todo!()
-}
-pub fn day25_part2(input: std::io::Stdin) {
+pub fn day25_part2(_: std::io::Stdin) {
     todo!()
 }
