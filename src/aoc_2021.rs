@@ -339,30 +339,45 @@ fn fish_reproduction(fish: u8, days: usize, memory: &mut HashMap<(u8, usize), us
     value
 }
 
+fn fishes_reproduction(fishes: Vec<usize>, days: usize) -> usize {
+    (0..days)
+        .fold(fishes, |fishes, _| {
+            vec![
+                fishes[1],
+                fishes[2],
+                fishes[3],
+                fishes[4],
+                fishes[5],
+                fishes[6],
+                fishes[0] + fishes[7],
+                fishes[8],
+                fishes[0],
+            ]
+        })
+        .into_iter()
+        .sum()
+}
+
 pub fn day6_part1() {
     let fishes = std_iter!(Bytes)
         .filter(|c| c.is_dec_digit())
         .map(|c| c - b'0')
-        .collect_vec();
-    let mut memory = HashMap::<(u8, usize), usize>::new();
-    let count: usize = fishes
-        .into_iter()
-        .map(|fish| fish_reproduction(fish, 80, &mut memory))
-        .sum();
-    println!("{}", count);
+        .fold(vec![0; 9], |mut v, d| {
+            v[d as usize] += 1;
+            v
+        });
+    println!("{}", fishes_reproduction(fishes, 80));
 }
 
 pub fn day6_part2() {
     let fishes = std_iter!(Bytes)
         .filter(|c| c.is_dec_digit())
         .map(|c| c - b'0')
-        .collect_vec();
-    let mut memory = HashMap::<(u8, usize), usize>::new();
-    let count: usize = fishes
-        .into_iter()
-        .map(|fish| fish_reproduction(fish, 256, &mut memory))
-        .sum();
-    println!("{}", count);
+        .fold(vec![0; 9], |mut v, d| {
+            v[d as usize] += 1;
+            v
+        });
+    println!("{}", fishes_reproduction(fishes, 256));
 }
 
 pub fn day7_part1() {
