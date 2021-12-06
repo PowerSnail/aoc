@@ -259,9 +259,11 @@ pub fn day6_part2() {
         .sum();
     println!("{}", count);
 }
+
 pub fn day7_part1() {
     todo!()
 }
+
 pub fn day7_part2() {
     todo!()
 }

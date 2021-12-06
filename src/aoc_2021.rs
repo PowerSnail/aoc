@@ -277,20 +277,94 @@ pub fn day4_part2() {
 }
 
 pub fn day5_part1() {
-    // input.lines().map(Result::unwrap)
-    //     .filter(|l|)
-    todo!()
+    let overlapped_count = std_iter!(Lines)
+        .map(|l| {
+            let numbers = l
+                .split(" -> ")
+                .map(|l| l.split(",").map(|x| x.parse().unwrap()))
+                .flatten()
+                .collect_vec();
+            LineSegment::new(
+                Point::new(numbers[0], numbers[1]),
+                Point::new(numbers[2], numbers[3]),
+            )
+        })
+        .filter(|l| l.is_horizontal() || l.is_vertical())
+        .map(|l| l.scan_line())
+        .flatten()
+        .counts()
+        .into_iter()
+        .filter(|(_, count)| *count >= 2)
+        .count();
+
+    println!("{:?}", overlapped_count);
 }
 
 pub fn day5_part2() {
-    todo!()
+    let overlapped_count = std_iter!(Lines)
+        .map(|l| {
+            let numbers = l
+                .split(" -> ")
+                .map(|l| l.split(",").map(|x| x.parse().unwrap()))
+                .flatten()
+                .collect_vec();
+            LineSegment::new(
+                Point::new(numbers[0], numbers[1]),
+                Point::new(numbers[2], numbers[3]),
+            )
+        })
+        .map(|l| l.scan_line())
+        .flatten()
+        .counts()
+        .into_iter()
+        .filter(|(_, count)| *count >= 2)
+        .count();
+
+    println!("{:?}", overlapped_count);
 }
+
+fn fish_reproduction(fish: u8, days: usize, memory: &mut HashMap<(u8, usize), usize>) -> usize {
+    if memory.contains_key(&(fish, days)) {
+        return *memory.get(&(fish, days)).unwrap();
+    }
+    let value = if days == 0 {
+        1
+    } else {
+        match fish {
+            0 => fish_reproduction(6, days - 1, memory) + fish_reproduction(8, days - 1, memory),
+            _ => fish_reproduction(fish - 1, days - 1, memory),
+        }
+    };
+    memory.insert((fish, days), value);
+    value
+}
+
 pub fn day6_part1() {
-    todo!()
+    let fishes = std_iter!(Bytes)
+        .filter(|c| c.is_dec_digit())
+        .map(|c| c - b'0')
+        .collect_vec();
+    let mut memory = HashMap::<(u8, usize), usize>::new();
+    let count: usize = fishes
+        .into_iter()
+        .map(|fish| fish_reproduction(fish, 80, &mut memory))
+        .sum();
+    println!("{}", count);
 }
+
 pub fn day6_part2() {
-    todo!()
+    let fishes = std_iter!(Bytes)
+        .filter(|c| c.is_dec_digit())
+        .map(|c| c - b'0')
+        .collect_vec();
+    let mut memory = HashMap::<(u8, usize), usize>::new();
+    let count: usize = fishes
+        .into_iter()
+        .map(|fish| fish_reproduction(fish, 256, &mut memory))
+        .sum();
+    println!("{}", count);
 }
+
 pub fn day7_part1() {
     todo!()
 }
