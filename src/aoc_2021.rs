@@ -323,22 +323,6 @@ pub fn day5_part2() {
     println!("{:?}", overlapped_count);
 }
 
-fn fish_reproduction(fish: u8, days: usize, memory: &mut HashMap<(u8, usize), usize>) -> usize {
-    if memory.contains_key(&(fish, days)) {
-        return *memory.get(&(fish, days)).unwrap();
-    }
-    let value = if days == 0 {
-        1
-    } else {
-        match fish {
-            0 => fish_reproduction(6, days - 1, memory) + fish_reproduction(8, days - 1, memory),
-            _ => fish_reproduction(fish - 1, days - 1, memory),
-        }
-    };
-    memory.insert((fish, days), value);
-    value
-}
-
 fn fishes_reproduction(fishes: Vec<usize>, days: usize) -> usize {
     (0..days)
         .fold(fishes, |fishes, _| {
