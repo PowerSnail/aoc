@@ -19,7 +19,11 @@ in_dir.mkdir(parents=True, exist_ok=True)
 in_file = in_dir / f"day{day}.txt"
 
 shell("cargo build --release", stdout=sp.DEVNULL, stderr=sp.DEVNULL)
-answer = shell(f"target/release/aoc {year} {day} {part} <{in_file}", stdout=sp.PIPE).stdout
+answer = shell(
+    f"target/release/aoc {year} {day} {part} <{in_file}",
+    stdout=sp.PIPE,
+    stderr=None,
+).stdout
 
 print(answer)
 shell("xsel -ib", input=answer)
