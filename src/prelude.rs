@@ -35,6 +35,9 @@ macro_rules! std_iter {
     (Bytes) => {
         std::io::stdin().bytes().map(Result::unwrap)
     };
+    (SplitBy $c:expr) => {
+        std::io::stdin().lines().next().unwrap().unwrap().split($c)
+    };
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -111,4 +114,8 @@ impl LineSegment {
             .map(|(i, x)| Point::new(x, self.p1.y + (i as i64) * step_y))
             .collect_vec()
     }
+}
+
+pub fn sum_to_1(n: i64) -> i64{
+    (n + 1) * n / 2
 }
