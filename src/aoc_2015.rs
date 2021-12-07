@@ -4,7 +4,12 @@
 // https://opensource.org/licenses/MIT
 
 use crate::{prelude::*, std_iter};
-use std::str::FromStr;
+use std::{
+    collections::{hash_map::DefaultHasher, HashSet},
+    hash::Hash,
+    io::Lines,
+    str::FromStr,
+};
 
 // --- Parsings ---
 
@@ -306,7 +311,11 @@ fn parse_circuit_instruction(l: &str) -> (String, CircuitConnection) {
     return (rhs, connection);
 }
 
-fn visit(node: &CircuitNode, circuit: &HashMap<String, CircuitConnection>, memory: &mut HashMap<String, u16>) -> u16 {
+fn visit(
+    node: &CircuitNode,
+    circuit: &HashMap<String, CircuitConnection>,
+    memory: &mut HashMap<String, u16>,
+) -> u16 {
     match node {
         CircuitNode::Value(v) => *v,
         CircuitNode::Node(n) => {
@@ -314,10 +323,18 @@ fn visit(node: &CircuitNode, circuit: &HashMap<String, CircuitConnection>, memor
                 let value = match &circuit[n] {
                     CircuitConnection::Assign(x) => visit(x, circuit, memory),
                     CircuitConnection::Not(x) => !visit(x, circuit, memory),
-                    CircuitConnection::And(x, y) => visit(x, circuit, memory) & visit(y, circuit, memory),
-                    CircuitConnection::Or(x, y) => visit(x, circuit, memory) | visit(y, circuit, memory),
-                    CircuitConnection::RightShift(x, b) => visit(x, circuit, memory) >> visit(b, circuit, memory),
-                    CircuitConnection::LeftShift(x, b) => visit(x, circuit, memory) << visit(b, circuit, memory),
+                    CircuitConnection::And(x, y) => {
+                        visit(x, circuit, memory) & visit(y, circuit, memory)
+                    }
+                    CircuitConnection::Or(x, y) => {
+                        visit(x, circuit, memory) | visit(y, circuit, memory)
+                    }
+                    CircuitConnection::RightShift(x, b) => {
+                        visit(x, circuit, memory) >> visit(b, circuit, memory)
+                    }
+                    CircuitConnection::LeftShift(x, b) => {
+                        visit(x, circuit, memory) << visit(b, circuit, memory)
+                    }
                 };
                 memory.insert(n.to_string(), value);
             }
@@ -331,7 +348,7 @@ pub fn day7_part1() {
         .map(|l| parse_circuit_instruction(&l))
         .collect();
 
-    let mut memory : HashMap<String, u16> = HashMap::new();
+    let mut memory: HashMap<String, u16> = HashMap::new();
     let wire_a = visit(&CircuitNode::Node(String::from("a")), &circuit, &mut memory);
     println!("{}", wire_a);
 }
@@ -349,17 +366,132 @@ pub fn day7_part2() {
 
     println!("{}", wire_a);
 }
+
+mod literals {
+
+    pub fn decode_string(s: &[u8]) -> Option<Vec<u8>> {
+        match s {
+            [b'"', inner @ .., b'"'] => decode_inner_string(inner, vec![]),
+            _ => None,
+        }
+    }
+
+    fn decode_inner_string(s: &[u8], mut so_far: Vec<u8>) -> Option<Vec<u8>> {
+        match s {
+            [] => Some(so_far),
+            [b'\\', c @ b'"' | c @ b'\\', tail @ ..] => {
+                so_far.push(*c);
+                decode_inner_string(tail, so_far)
+            }
+            [b'\\', b'x', a @ b'0'..=b'9' | a @ b'a'..=b'f', b @ b'0'..=b'9' | b @ b'a'..=b'f', tail @ ..] =>
+            {
+                let num = u8::from_str_radix(std::str::from_utf8(&[*a, *b]).unwrap(), 16).unwrap();
+                so_far.push(num);
+                decode_inner_string(tail, so_far)
+            }
+            [c, tail @ ..] => {
+                so_far.push(*c);
+                decode_inner_string(tail, so_far)
+            }
+        }
+    }
+
+    pub fn encode_string(s: &[u8]) -> Vec<u8> {
+        let mut builder = vec![b'"'];
+        for c in s {
+            match *c {
+                b'"' => builder.extend([b'\\', b'"']),
+                b'\\' => builder.extend([b'\\', b'\\']),
+                c => builder.push(c),
+            };
+        }
+        builder.push(b'"');
+        builder
+    }
+}
+
 pub fn day8_part1() {
-    todo!()
+    let result: usize = std_iter!(Lines)
+        .map(|l| l.len() - literals::decode_string(l.as_bytes()).unwrap().len())
+        .sum();
+    println!("{}", result);
 }
+
 pub fn day8_part2() {
-    todo!()
+    let result: usize = std_iter!(Lines)
+        .map(|l| literals::encode_string(l.as_bytes()).len() - l.len())
+        .sum();
+    println!("{}", result);
 }
+
 pub fn day9_part1() {
-    todo!()
+    let lines = std_iter!(Lines).collect_vec();
+    let tokens = lines.iter().map(|l|l.split(" ").collect_vec()).collect_vec();
+
+    let nodes: HashMap<&str, usize> = tokens
+        .iter()
+        .map(|l| [l[0], l[2]])
+        .flatten()
+        .unique()
+        .enumerate()
+        .map(|(i, s)| (s, i))
+        .collect();
+
+    let mut graph = vec![vec![0; nodes.len()]; nodes.len()];
+
+    for line in tokens.iter() {
+        let c1 = nodes.get(line[0]).unwrap();
+        let c2 = nodes.get(line[2]).unwrap();
+        graph[*c1][*c2] = line[4].parse().unwrap();
+        graph[*c2][*c1] = line[4].parse().unwrap();
+    }
+
+    let min_distance = (0..nodes.len())
+        .permutations(nodes.len())
+        .map(|x| {
+            x.iter()
+                .zip(x.iter().skip(1))
+                .map(|(&a, &b)| graph[a][b])
+                .sum::<u64>()
+        })
+        .min()
+        .unwrap();
+    println!("{}", min_distance);
 }
+
 pub fn day9_part2() {
-    todo!()
+    let lines = std_iter!(Lines).collect_vec();
+    let tokens = lines.iter().map(|l|l.split(" ").collect_vec()).collect_vec();
+
+    let nodes: HashMap<&str, usize> = tokens
+        .iter()
+        .map(|l| [l[0], l[2]])
+        .flatten()
+        .unique()
+        .enumerate()
+        .map(|(i, s)| (s, i))
+        .collect();
+
+    let mut graph = vec![vec![0; nodes.len()]; nodes.len()];
+
+    for line in tokens.iter() {
+        let c1 = nodes.get(line[0]).unwrap();
+        let c2 = nodes.get(line[2]).unwrap();
+        graph[*c1][*c2] = line[4].parse().unwrap();
+        graph[*c2][*c1] = line[4].parse().unwrap();
+    }
+
+    let max_distance = (0..nodes.len())
+        .permutations(nodes.len())
+        .map(|x| {
+            x.iter()
+                .zip(x.iter().skip(1))
+                .map(|(&a, &b)| graph[a][b])
+                .sum::<u64>()
+        })
+        .max()
+        .unwrap();
+    println!("{}", max_distance);
 }
 pub fn day10_part1() {
     todo!()
