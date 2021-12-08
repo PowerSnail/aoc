@@ -4,12 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use crate::{prelude::*, std_iter};
-use std::{
-    collections::{hash_map::DefaultHasher, HashSet, VecDeque, vec_deque},
-    hash::Hash,
-    io::Lines,
-    str::FromStr,
-};
+use std::str::FromStr;
 
 // --- Parsings ---
 
@@ -565,7 +560,7 @@ fn radix_26_encode(value: u64) -> Vec<u8> {
 fn password_is_ok(value: u64) -> bool {
     let forbidden_digits = [b'i', b'o', b'l'];
     let digits = radix_26_encode(value);
-    
+
     let contains_bad_char = digits.iter().any(|x| forbidden_digits.contains(x));
 
     let pairs = digits
