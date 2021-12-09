@@ -1,5 +1,6 @@
 pub use itertools::Itertools;
 pub use std::collections::HashMap;
+use std::fmt::Debug;
 pub use std::io::Read;
 
 pub use nom::branch::alt;
@@ -118,4 +119,11 @@ impl LineSegment {
 
 pub fn sum_to_1(n: i64) -> i64{
     (n + 1) * n / 2
+}
+
+pub fn eprint_and_return<T>(x: T) -> T 
+    where T : Debug
+{
+    eprintln!("{:?}", x);
+    x
 }

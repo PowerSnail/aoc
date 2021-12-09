@@ -31,14 +31,14 @@ def main():
     )
 
     answer = result.stdout
-
+    print(result.stderr)
     print(answer)
     shell("xsel -ib", input=answer)
 
     if to_save:
         with out_file.open("w") as file:
             file.write(answer)
-    else:
+    elif not to_test:
         if out_file.exists():
             shell(f"diff {out_file} - || true", input=answer)
 
