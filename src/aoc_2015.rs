@@ -604,11 +604,58 @@ pub fn day11_part2() {
     let string = radix_26_encode(password);
     println!("{}", String::from_utf8(string).unwrap());
 }
-pub fn day12_part1() {
-    todo!()
+
+fn accumulate_numbers(v: &serde_json::Value, accumulator: &mut Vec<f64>) {
+    match v {
+        serde_json::Value::Null 
+        | serde_json::Value::Bool(_) 
+        | serde_json::Value::String(_) => (),
+        serde_json::Value::Number(n) => accumulator.push(n.as_f64().unwrap()),
+        serde_json::Value::Array(arr) => arr.iter().for_each(|v| accumulate_numbers(v, accumulator)),
+        serde_json::Value::Object(obj) => obj.values().for_each(|v| accumulate_numbers(v, accumulator))
+    }
 }
+
+pub fn day12_part1() {
+    let data = std_iter!(Lines).next().unwrap();
+    let value: serde_json::Value = serde_json::from_str(&data).unwrap();
+    let mut sum = 0.0;
+    let mut stack = vec![&value];
+    
+    while let Some(v) = stack.pop() {
+        match v {
+            serde_json::Value::Null 
+            | serde_json::Value::Bool(_) 
+            | serde_json::Value::String(_) => (),
+            serde_json::Value::Number(n) => sum += n.as_f64().unwrap(),
+            serde_json::Value::Array(arr) => arr.iter().for_each(|v| stack.push(v)),
+            serde_json::Value::Object(obj) => obj.values().for_each(|v| stack.push(v))
+        }
+    }
+    println!("{}", sum);
+}
+
 pub fn day12_part2() {
-    todo!()
+    let data = std_iter!(Lines).next().unwrap();
+    let value: serde_json::Value = serde_json::from_str(&data).unwrap();
+    let mut sum = 0.0;
+    let mut stack = vec![&value];
+
+    while let Some(v) = stack.pop() {
+        match v {
+            serde_json::Value::Null 
+            | serde_json::Value::Bool(_) 
+            | serde_json::Value::String(_) => (),
+            serde_json::Value::Number(n) => sum += n.as_f64().unwrap(),
+            serde_json::Value::Array(arr) => arr.iter().for_each(|v| stack.push(v)),
+            serde_json::Value::Object(obj) => {
+                if !obj.values().filter_map(|v| v.as_str()).any(|v| v == "red") {
+                    obj.values().for_each(|v| stack.push(v))
+                }
+            }
+        }
+    }
+    println!("{}", sum);
 }
 pub fn day13_part1() {
     todo!()
