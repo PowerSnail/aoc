@@ -605,17 +605,6 @@ pub fn day11_part2() {
     println!("{}", String::from_utf8(string).unwrap());
 }
 
-fn accumulate_numbers(v: &serde_json::Value, accumulator: &mut Vec<f64>) {
-    match v {
-        serde_json::Value::Null 
-        | serde_json::Value::Bool(_) 
-        | serde_json::Value::String(_) => (),
-        serde_json::Value::Number(n) => accumulator.push(n.as_f64().unwrap()),
-        serde_json::Value::Array(arr) => arr.iter().for_each(|v| accumulate_numbers(v, accumulator)),
-        serde_json::Value::Object(obj) => obj.values().for_each(|v| accumulate_numbers(v, accumulator))
-    }
-}
-
 pub fn day12_part1() {
     let data = std_iter!(Lines).next().unwrap();
     let value: serde_json::Value = serde_json::from_str(&data).unwrap();
