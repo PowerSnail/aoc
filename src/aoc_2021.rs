@@ -6,7 +6,6 @@
 use std::collections::{HashSet, VecDeque};
 
 use itertools::iproduct;
-use nom::error::ErrorKind;
 
 use crate::{prelude::*, std_iter};
 
