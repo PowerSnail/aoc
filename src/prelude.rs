@@ -117,12 +117,13 @@ impl LineSegment {
     }
 }
 
-pub fn sum_to_1(n: i64) -> i64{
+pub fn sum_to_1(n: i64) -> i64 {
     (n + 1) * n / 2
 }
 
-pub fn eprint_and_return<T>(x: T) -> T 
-    where T : Debug
+pub fn eprint_and_return<T>(x: T) -> T
+where
+    T: Debug,
 {
     eprintln!("{:?}", x);
     x
