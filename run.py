@@ -2,7 +2,7 @@ import subprocess as sp
 import sys
 import pathlib
 import functools
-import traceback
+import time
 
 shell = functools.partial(sp.run, shell=True, check=True, text=True)
 
@@ -22,16 +22,22 @@ def main():
     in_dir.mkdir(parents=True, exist_ok=True)
     in_file = "inputs/test.txt" if to_test else in_dir / f"day{day}.txt" 
 
+    print("Compiling...")
     shell("cargo build --release", stdout=sp.DEVNULL, stderr=sp.DEVNULL)
 
+    print("Running solution...")
+    tic = time.time()
     result = shell(
         f"target/release/aoc {year} {day} {part} <{in_file}",
         stdout=sp.PIPE,
         stderr=sp.PIPE,
     )
+    toc = time.time()
+    print(f"Finished in {toc - tic:.4f}s")
 
     answer = result.stdout
-    print(result.stderr)
+    if result.stderr:
+        print(result.stderr)
     print(answer)
     shell("xsel -ib", input=answer)
 
