@@ -12,6 +12,7 @@ pub use nom::character::complete::alpha1;
 pub use nom::character::complete::alphanumeric0;
 pub use nom::character::complete::char;
 pub use nom::character::complete::digit0;
+pub use nom::character::complete::digit1;
 pub use nom::character::is_alphabetic;
 pub use nom::character::is_alphanumeric;
 pub use nom::combinator::fail;
@@ -127,4 +128,54 @@ where
 {
     eprintln!("{:?}", x);
     x
+}
+
+pub struct NodeRegistration {
+    names: Vec<String>,
+    ids: HashMap<String, usize>,
+}
+
+impl NodeRegistration {
+    pub fn add(&mut self, name: &str) -> usize {
+        if self.ids.contains_key(name) {
+            return self.ids[name];
+        }
+        let id = self.names.len();
+        self.names.push(name.to_string());
+        self.ids.insert(name.to_string(), id);
+        id
+    }
+
+    pub fn get_name(&self, id: usize) -> Option<&str> {
+        if id < self.names.len() {
+            Some(&self.names[id])
+        } else {
+            None
+        }
+    }
+
+    pub fn get_id(&self, name: &str) -> Option<usize> {
+        self.ids.get(name).and_then(|x| Some(*x))
+    }
+
+    pub fn names(&self) -> impl Iterator<Item = &String> {
+        self.names.iter()
+    }
+
+    pub fn len(&self) -> usize {
+        self.names.len()
+    }
+}
+
+impl<'a> FromIterator<&'a str> for NodeRegistration {
+    fn from_iter<T: IntoIterator<Item = &'a str>>(iter: T) -> Self {
+        let mut reg = NodeRegistration {
+            names: vec![],
+            ids: HashMap::new(),
+        };
+        for s in iter {
+            reg.add(s);
+        }
+        reg
+    }
 }
