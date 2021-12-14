@@ -3,24 +3,128 @@ import sys
 import pathlib
 import functools
 import time
+import docopt
+import re
+from rich.console import Console
+from rich.table import Table
 
 shell = functools.partial(sp.run, shell=True, check=True, text=True)
+console = Console()
+
+CLI = """run.py
+
+Usage:
+    run.py [options] <year> <day> <part> 
+    run.py list [<year>]               
+    run.py tests [<year>]     
+    run.py -h | --help
+
+Options:
+    -t          Run Test.
+    -s          Save result.
+    -h --help   Show this screen.
+"""
 
 
 def main():
-    year = int(sys.argv[1])
-    day = int(sys.argv[2])
-    part = int(sys.argv[3])
-    to_save = "-s" in sys.argv
-    to_test = "-t" in sys.argv
+    opts = docopt.docopt(CLI)
 
+    if opts["list"]:
+        if opts["<year>"]:
+            list_result(opts["<year>"])
+        else:
+            for y in pathlib.Path(f"outputs").iterdir():
+                list_result(y.name)
+
+    elif opts["tests"]:
+        if opts["<year>"]:
+            tests(opts["<year>"])
+        else:
+            for y in pathlib.Path(f"outputs").iterdir():
+                tests(y.name)
+    else:
+        try:
+            run(opts["<year>"], opts["<day>"], opts["<part>"], opts["-s"], opts["-t"])
+        except sp.CalledProcessError as err:
+            if err.stdout:
+                sys.stderr.write("STDOUT\n------\n")
+                sys.stderr.write(err.stdout)
+            if err.stderr:
+                sys.stderr.write("STDERR\n------\n")
+                sys.stderr.write(err.stderr)
+            sys.stderr.write("------\n")
+
+
+def list_result(year):
+    out_dir = pathlib.Path(f"outputs/{year}")
+    files = [
+        re.match("day(\d+)-part(\d+).txt", file.name)
+        for file in out_dir.glob("day*-part*.txt")
+    ]
+    files = {(int(match.group(1)), int(match.group(2))) for match in files}
+
+    table = Table(title=f"Year {year}")
+    table.add_column("Day", justify="right")
+    table.add_column("Part 1")
+    table.add_column("Part 2")
+
+    for day in range(1, 26):
+        table.add_row(
+            str(day),
+            ("✓" if (day, 1) in files else "❌"),
+            ("✓" if (day, 2) in files else "❌"),
+        )
+
+    console.print(table)
+
+
+def tests(year):
+    out_dir = pathlib.Path(f"outputs/{year}")
+    files = [
+        re.match("day(\d+)-part(\d+).txt", file.name)
+        for file in out_dir.glob("day*-part*.txt")
+    ]
+    files = {(int(match.group(1)), int(match.group(2))) for match in files}
+    results = {}
+    for (day, part) in files:
+        try:
+            results[(day, part)] = run(year, day, part, False, False)
+        except sp.CalledProcessError as err:
+            if err.stdout:
+                sys.stderr.write("STDOUT\n------\n")
+                sys.stderr.write(err.stdout)
+            if err.stderr:
+                sys.stderr.write("STDERR\n------\n")
+                sys.stderr.write(err.stderr)
+            sys.stderr.write("------\n")
+
+    table = Table(title=f"Year {year}")
+    table.add_column("Day", justify="right")
+    table.add_column("Part 1")
+    table.add_column("Part 2")
+
+    chars = {
+        True: "✓",
+        False: "❌",
+        None: "○",
+    }
+
+    for day in range(1, 26):
+        day1 = results.get((day, 1), None)
+        day2 = results.get((day, 2), None)
+        table.add_row(str(day), chars[day1], chars[day2])
+
+    console.print(table)
+
+
+def run(year, day, part, to_save, to_test):
     out_dir = pathlib.Path(f"outputs/{year}")
     out_dir.mkdir(parents=True, exist_ok=True)
     out_file = out_dir / f"day{day}-part{part}.txt"
 
     in_dir = pathlib.Path(f"inputs/{year}")
     in_dir.mkdir(parents=True, exist_ok=True)
-    in_file = "inputs/test.txt" if to_test else in_dir / f"day{day}.txt" 
+    in_file = "inputs/test.txt" if to_test else in_dir / f"day{day}.txt"
 
     print("Compiling...")
     shell("cargo build --release", stdout=sp.DEVNULL, stderr=sp.DEVNULL)
@@ -46,17 +150,9 @@ def main():
             file.write(answer)
     elif not to_test:
         if out_file.exists():
-            shell(f"diff {out_file} - || true", input=answer)
+            result = shell(f"diff {out_file} - || true", input=answer)
+            return result.returncode == 0
+    return True
 
 
-try:
-    main()
-except sp.CalledProcessError as err:
-    if err.stdout:
-        sys.stderr.write("STDOUT\n------\n")
-        sys.stderr.write(err.stdout)
-    if err.stderr:
-        sys.stderr.write("STDERR\n------\n")
-        sys.stderr.write(err.stderr)
-    sys.stderr.write("------\n")
-    raise err
+main()
