@@ -40,6 +40,12 @@ macro_rules! std_iter {
     (SplitBy $c:expr) => {
         std::io::stdin().lines().next().unwrap().unwrap().split($c)
     };
+    (Grid) => {
+        std_iter!(Lines).map(|l|l.bytes().collect_vec()).collect_vec()
+    };
+    (GridOf $f:expr) => {
+        std_iter!(Lines).map(|l|l.bytes().map($f).collect_vec()).collect_vec()
+    };
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
