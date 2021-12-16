@@ -6,6 +6,7 @@ pub use std::io::Read;
 pub use nom::branch::alt;
 pub use nom::bytes::complete::is_a;
 pub use nom::bytes::complete::tag;
+pub use nom::bytes::complete::take_till;
 pub use nom::bytes::complete::take_while;
 pub use nom::character::complete::alpha0;
 pub use nom::character::complete::alpha1;
@@ -15,6 +16,7 @@ pub use nom::character::complete::digit0;
 pub use nom::character::complete::digit1;
 pub use nom::character::is_alphabetic;
 pub use nom::character::is_alphanumeric;
+pub use nom::character::is_digit;
 pub use nom::combinator::fail;
 pub use nom::multi::separated_list0;
 pub use nom::number::complete::i64;
@@ -27,6 +29,7 @@ pub use nom::IResult;
 
 pub use crate::parsers::parse_dec;
 pub use crate::parsers::parse_i64;
+pub use crate::parsers::parse_u64;
 pub use crate::parsers::parse_usize;
 
 #[macro_export]
@@ -41,10 +44,14 @@ macro_rules! std_iter {
         std::io::stdin().lines().next().unwrap().unwrap().split($c)
     };
     (Grid) => {
-        std_iter!(Lines).map(|l|l.bytes().collect_vec()).collect_vec()
+        std_iter!(Lines)
+            .map(|l| l.bytes().collect_vec())
+            .collect_vec()
     };
     (GridOf $f:expr) => {
-        std_iter!(Lines).map(|l|l.bytes().map($f).collect_vec()).collect_vec()
+        std_iter!(Lines)
+            .map(|l| l.bytes().map($f).collect_vec())
+            .collect_vec()
     };
 }
 
