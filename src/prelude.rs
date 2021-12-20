@@ -192,3 +192,24 @@ impl<'a> FromIterator<&'a str> for NodeRegistration {
         reg
     }
 }
+
+#[macro_export]
+macro_rules! v_max {
+    ($t:ident, $e:expr) => {
+        $t.iter().map(|&x| x.max($e)).collect()
+    };
+}
+
+#[macro_export]
+macro_rules! v_times {
+    ($t:ident, $e:expr) => {
+        $t.iter().map(|&x| x * $e).collect()
+    };
+}
+
+#[macro_export]
+macro_rules! v_add {
+    ($x:ident, $y:ident) => {
+        $x.iter().zip($y.iter()).map(|(&x1, &x2)| x1 + x2).collect()
+    };
+}
