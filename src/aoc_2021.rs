@@ -1110,17 +1110,17 @@ fn solve_quadratic(a: f64, b: f64, c: f64) -> Option<Vec<f64>> {
     }
 }
 
-fn has_overlap(a_left: f64, a_right: f64, b_left: f64, b_right: f64) -> bool {
-    a_left <= b_left && b_left <= a_right || a_left <= b_right && b_right <= a_right
-}
-
 pub fn day17_part2() {
     let (x1, x2, y1, y2) = std_iter!(Lines)
         .map(|l| parse_target_area(&l).unwrap().1)
         .next()
         .unwrap();
 
-    let vy_min = if y2 > 0 { solve_quadratic(1., 1., -2.0 * y1 as f64).unwrap()[0].ceil() as i64 } else { y1 };
+    let vy_min = if y2 > 0 {
+        solve_quadratic(1., 1., -2.0 * y1 as f64).unwrap()[0].ceil() as i64
+    } else {
+        y1
+    };
     let vy_max = if y1 > 0 { y2 + 1 } else { -y1 - 1 };
     let vx_min = solve_quadratic(1., 1., -2. * x1 as f64).unwrap()[0].ceil() as i64;
     let vx_max = x2;
@@ -1135,8 +1135,17 @@ pub fn day17_part2() {
                 if x1 <= probe.0 && probe.0 <= x2 && y1 <= probe.1 && probe.1 <= y2 {
                     return true;
                 }
-                let dvx = if probe.2 == 0 { 0 } else { probe.2 / probe.2.abs() };
-                probe = (probe.0 + probe.2, probe.1 + probe.3, probe.2 - dvx, probe.3 - 1);
+                let dvx = if probe.2 == 0 {
+                    0
+                } else {
+                    probe.2 / probe.2.abs()
+                };
+                probe = (
+                    probe.0 + probe.2,
+                    probe.1 + probe.3,
+                    probe.2 - dvx,
+                    probe.3 - 1,
+                );
             }
         })
         .count();
@@ -1144,11 +1153,128 @@ pub fn day17_part2() {
     println!("{}", count);
 }
 
-pub fn day18_part1() {
-    todo!()
+fn print_snailfish(fish: &[(u64, u64)]) {
+    for (v, _) in fish.iter() {
+        eprint!("{}", v);
+    }
+    eprintln!();
+    for (_, l) in fish.iter() {
+        eprint!("{}", l);
+    }
+    eprintln!();
 }
+
+#[derive(Debug)]
+enum ReductionResult {
+    Explosion(usize, usize, u64, u64),
+    Split(usize, u64, u64),
+}
+
+fn add_snailfish(fish_1: &[(u64, u64)], fish_2: &[(u64, u64)]) -> Vec<(u64, u64)> {
+    let sum = fish_1
+        .iter()
+        .map(|&(v, l)| (v, l + 1))
+        .chain(fish_2.iter().map(|&(v, l)| (v, l + 1)))
+        .collect();
+    reduce_snailfish(sum)
+}
+
+fn search_reduction(fish: &[(u64, u64)]) -> Option<ReductionResult> {
+    fish.iter().enumerate().find_map(|(i, &(v, l))| {
+        if l == 5 {
+            Some(ReductionResult::Explosion(i, i + 1, v, fish[i + 1].0))
+        } else if v >= 10 {
+            Some(ReductionResult::Split(i, l, v))
+        } else {
+            None
+        }
+    })
+}
+
+fn reduce_snailfish(fish: Vec<(u64, u64)>) -> Vec<(u64, u64)> {
+    if let Some((i, (_, l))) = fish.iter().find_position(|&(_, l)| *l > 4) {
+        let mut new_fish = vec![];
+        new_fish.extend_from_slice(&fish[..i]);
+        new_fish.push((0, l - 1));
+        new_fish.extend_from_slice(&fish[i + 2..]);
+        if i > 0 {
+            new_fish[i - 1].0 += fish[i].0;
+        }
+        if i < new_fish.len() - 1 {
+            new_fish[i + 1].0 += fish[i + 1].0;
+        }
+        reduce_snailfish(new_fish)
+    } else if let Some((i, (v, l))) = fish.iter().find_position(|&(v, _)| *v >= 10) {
+        let half = *v as f64 / 2.;
+        let mut new_fish = vec![];
+        new_fish.extend_from_slice(&fish[..i]);
+        new_fish.push((half.floor() as u64, *l + 1));
+        new_fish.push((half.ceil() as u64, *l + 1));
+        new_fish.extend_from_slice(&fish[i + 1..]);
+        reduce_snailfish(new_fish)
+    } else {
+        fish
+    }
+}
+
+fn magnitude_snailfish(fish: &[(u64, u64)], level: u64) -> (&[(u64, u64)], u64) {
+    let (fish, lhs) = if fish[0].1 > level {
+        magnitude_snailfish(fish, level + 1)
+    } else {
+        (&fish[1..], fish[0].0)
+    };
+    let (fish, rhs) = if fish[0].1 > level {
+        magnitude_snailfish(fish, level + 1)
+    } else {
+        (&fish[1..], fish[0].0)
+    };
+    (fish, lhs * 3 + rhs * 2)
+}
+
+pub fn day18_part1() {
+    let fish_sum = std_iter!(Lines)
+        .map(|l| {
+            let mut numbers = vec![];
+            let mut level = 0u64;
+            for b in l.chars() {
+                match b {
+                    '[' => level += 1,
+                    ']' => level -= 1,
+                    c @ '0'..='9' => numbers.push((c as u64 - '0' as u64, level)),
+                    _ => (),
+                }
+            }
+            reduce_snailfish(numbers)
+        })
+        .reduce(|f1, f2| add_snailfish(&f1, &f2))
+        .unwrap();
+    let (_, magnitude) = magnitude_snailfish(&fish_sum, 1);
+    println!("{}", magnitude);
+}
+
 pub fn day18_part2() {
-    todo!()
+    let fishes = std_iter!(Lines)
+        .map(|l| {
+            let mut numbers = vec![];
+            let mut level = 0u64;
+            for b in l.chars() {
+                match b {
+                    '[' => level += 1,
+                    ']' => level -= 1,
+                    c @ '0'..='9' => numbers.push((c as u64 - '0' as u64, level)),
+                    _ => (),
+                }
+            }
+            reduce_snailfish(numbers)
+        })
+        .collect_vec();
+    let max = fishes
+        .iter()
+        .cartesian_product(fishes.iter())
+        .map(|(f1, f2)| magnitude_snailfish(&add_snailfish(f1, f2), 1).1)
+        .max()
+        .unwrap();
+    println!("{}", max);
 }
 pub fn day19_part1() {
     todo!()
