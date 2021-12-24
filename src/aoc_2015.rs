@@ -3,9 +3,9 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-use nom::bytes::complete::take_until;
+use nom::{bytes::complete::take_until, sequence::delimited};
 
-use crate::{prelude::*, std_iter};
+use crate::{prelude::*, std_iter, v_add, v_max, v_times};
 use std::str::FromStr;
 
 // --- Parsings ---
@@ -780,12 +780,87 @@ pub fn day14_part2() {
     println!("{}", winner);
 }
 
-pub fn day15_part1() {
+fn parse_recipe(s: &str) -> IResult<&str, Recipe> {
+    // Sprinkles: capacity 2, durability 0, flavor -2, texture 0, calories 3
+    let (s, _) = take_until(": ")(s)?;
+    let (s, capacity) = delimited(tag("capacity "), parse_i64, tag(", "))(s)?;
+    let (s, durability) = delimited(tag("durability "), parse_i64, tag(", "))(s)?;
+    let (s, flavor) = delimited(tag("flavor "), parse_i64, tag(", "))(s)?;
+    let (s, texture) = delimited(tag("texture "), parse_i64, tag(", "))(s)?;
+    let (s, calories) = preceded(tag("calories "), parse_i64)(s)?;
+    Ok((
+        s,
+        Recipe {
+            capacity,
+            durability,
+            flavor,
+            texture,
+            calories,
+        },
+    ))
+}
+
+struct Recipe {
+    capacity: i64,
+    durability: i64,
+    flavor: i64,
+    texture: i64,
+    calories: i64,
+}
+
+impl Recipe {
+    pub fn score(&self) -> i64 {
+        vec![self.capacity, self.durability, self.flavor, self.texture]
+            .into_iter()
+            .map(|v| v.clamp(0, i64::MAX))
+            .product()
+    }
+}
+
+impl std::ops::Add for Recipe {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        Self {
+            capacity: self.capacity + other.capacity,
+            durability: self.durability + other.durability,
+            flavor: self.flavor + other.flavor,
+            texture: self.texture + other.texture,
+            calories: self.calories + other.calories,
+        }
+    }
+}
+
+impl std::ops::Mul<i64> for Recipe {
+    type Output = Self;
+
+    fn mul(self, rhs: i64) -> Self {
+        Self {
+            capacity: self.capacity * rhs,
+            durability: self.durability * rhs,
+            flavor: self.flavor * rhs,
+            texture: self.texture * rhs,
+            calories: self.calories * rhs,
+        }
+    }
+}
+
+fn max_recipe_score(ingredients: &[Recipe], teaspoons: usize) -> i64 {
     todo!()
 }
+
+pub fn day15_part1() {
+    std_iter!(Lines)
+        .map(|l| parse_recipe(&l).expect("Parser Error").1)
+        .map(|r| {
+        });
+    todo!()
+}
+
 pub fn day15_part2() {
     todo!()
 }
+
 pub fn day16_part1() {
     todo!()
 }

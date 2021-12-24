@@ -28,6 +28,8 @@ pub use nom::sequence::separated_pair;
 pub use nom::sequence::tuple;
 pub use nom::AsChar;
 pub use nom::IResult;
+pub use ndarray::prelude::*;
+pub use ndarray::Array;
 
 pub use crate::parsers::parse_dec;
 pub use crate::parsers::parse_i64;

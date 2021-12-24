@@ -1153,23 +1153,6 @@ pub fn day17_part2() {
     println!("{}", count);
 }
 
-fn print_snailfish(fish: &[(u64, u64)]) {
-    for (v, _) in fish.iter() {
-        eprint!("{}", v);
-    }
-    eprintln!();
-    for (_, l) in fish.iter() {
-        eprint!("{}", l);
-    }
-    eprintln!();
-}
-
-#[derive(Debug)]
-enum ReductionResult {
-    Explosion(usize, usize, u64, u64),
-    Split(usize, u64, u64),
-}
-
 fn add_snailfish(fish_1: &[(u64, u64)], fish_2: &[(u64, u64)]) -> Vec<(u64, u64)> {
     let sum = fish_1
         .iter()
@@ -1177,18 +1160,6 @@ fn add_snailfish(fish_1: &[(u64, u64)], fish_2: &[(u64, u64)]) -> Vec<(u64, u64)
         .chain(fish_2.iter().map(|&(v, l)| (v, l + 1)))
         .collect();
     reduce_snailfish(sum)
-}
-
-fn search_reduction(fish: &[(u64, u64)]) -> Option<ReductionResult> {
-    fish.iter().enumerate().find_map(|(i, &(v, l))| {
-        if l == 5 {
-            Some(ReductionResult::Explosion(i, i + 1, v, fish[i + 1].0))
-        } else if v >= 10 {
-            Some(ReductionResult::Split(i, l, v))
-        } else {
-            None
-        }
-    })
 }
 
 fn reduce_snailfish(fish: Vec<(u64, u64)>) -> Vec<(u64, u64)> {
@@ -1276,9 +1247,36 @@ pub fn day18_part2() {
         .unwrap();
     println!("{}", max);
 }
+
 pub fn day19_part1() {
-    todo!()
+    let mut scanners = std_iter!(Lines)
+        .filter(|l| !l.is_empty())
+        .fold(VecDeque::new(), |mut v, l| {
+            if l.starts_with("---") {
+                v.push_back(vec![])
+            } else {
+                let point = l
+                    .split(",")
+                    .map(|token| token.parse::<i64>().unwrap())
+                    .collect::<Array<i64, _>>()
+                    .into_shape((3, 1))
+                    .unwrap();
+                v.back_mut().unwrap().push(point);
+            }
+            v
+        });
+    
+    let first_set = HashSet::<_>::from_iter(scanners.pop_front().unwrap().into_iter());
+    let mut anchored = vec![first_set];
+
+    while let Some(scanner) = scanners.pop_front() {
+        for a in anchored {
+            
+        }
+    }
+
 }
+
 pub fn day19_part2() {
     todo!()
 }
