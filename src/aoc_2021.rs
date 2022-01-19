@@ -1269,11 +1269,6 @@ pub fn day19_part1() {
     let first_set = HashSet::<_>::from_iter(scanners.pop_front().unwrap().into_iter());
     let mut anchored = vec![first_set];
 
-    while let Some(scanner) = scanners.pop_front() {
-        for a in anchored {
-            
-        }
-    }
 
 }
 

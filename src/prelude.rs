@@ -4,6 +4,8 @@ pub use std::collections::VecDeque;
 use std::fmt::Debug;
 pub use std::io::Read;
 
+pub use ndarray::prelude::*;
+pub use ndarray::Array;
 pub use nom::branch::alt;
 pub use nom::bytes::complete::is_a;
 pub use nom::bytes::complete::tag;
@@ -15,6 +17,8 @@ pub use nom::character::complete::alphanumeric0;
 pub use nom::character::complete::char;
 pub use nom::character::complete::digit0;
 pub use nom::character::complete::digit1;
+pub use nom::character::complete::space0;
+pub use nom::character::complete::space1;
 pub use nom::character::is_alphabetic;
 pub use nom::character::is_alphanumeric;
 pub use nom::character::is_digit;
@@ -22,19 +26,19 @@ pub use nom::combinator::fail;
 pub use nom::multi::separated_list0;
 pub use nom::number::complete::i64;
 pub use nom::number::complete::u64;
-pub use nom::sequence::preceded;
 pub use nom::sequence::delimited;
+pub use nom::sequence::pair;
+pub use nom::sequence::preceded;
 pub use nom::sequence::separated_pair;
 pub use nom::sequence::tuple;
 pub use nom::AsChar;
 pub use nom::IResult;
-pub use ndarray::prelude::*;
-pub use ndarray::Array;
 
 pub use crate::parsers::parse_dec;
 pub use crate::parsers::parse_i64;
 pub use crate::parsers::parse_u64;
 pub use crate::parsers::parse_usize;
+pub use crate::parsers::take_after;
 
 #[macro_export]
 macro_rules! std_iter {

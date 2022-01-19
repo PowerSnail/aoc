@@ -780,85 +780,113 @@ pub fn day14_part2() {
     println!("{}", winner);
 }
 
-fn parse_recipe(s: &str) -> IResult<&str, Recipe> {
+fn parse_recipe(s: &str) -> IResult<&str, Vec<i64>> {
     // Sprinkles: capacity 2, durability 0, flavor -2, texture 0, calories 3
-    let (s, _) = take_until(": ")(s)?;
-    let (s, capacity) = delimited(tag("capacity "), parse_i64, tag(", "))(s)?;
-    let (s, durability) = delimited(tag("durability "), parse_i64, tag(", "))(s)?;
-    let (s, flavor) = delimited(tag("flavor "), parse_i64, tag(", "))(s)?;
-    let (s, texture) = delimited(tag("texture "), parse_i64, tag(", "))(s)?;
-    let (s, calories) = preceded(tag("calories "), parse_i64)(s)?;
-    Ok((
-        s,
-        Recipe {
-            capacity,
-            durability,
-            flavor,
-            texture,
-            calories,
-        },
-    ))
+    let (s, _) = take_after(": ")(s)?;
+    separated_list0(tag(", "), preceded(take_after(" "), parse_i64))(s)
 }
 
-struct Recipe {
-    capacity: i64,
-    durability: i64,
-    flavor: i64,
-    texture: i64,
-    calories: i64,
+fn score_recipe(r: &Vec<i64>) -> i64 {
+    r[..4].iter().map(|&v| v.max(0)).product()
 }
 
-impl Recipe {
-    pub fn score(&self) -> i64 {
-        vec![self.capacity, self.durability, self.flavor, self.texture]
-            .into_iter()
-            .map(|v| v.clamp(0, i64::MAX))
-            .product()
+fn add_recipe(x: Vec<i64>, y: Vec<i64>) -> Vec<i64> {
+    x.into_iter()
+        .zip(y.into_iter())
+        .map(|(x, y)| x + y)
+        .collect_vec()
+}
+
+fn scale_recipe(x: &Vec<i64>, factor: i64) -> Vec<i64> {
+    x.iter().map(|&v| v * factor).collect_vec()
+}
+
+struct IntegerPartition {
+    _state: Vec<usize>,
+}
+
+impl IntegerPartition {
+    pub fn new(total: usize, count: usize) -> IntegerPartition {
+        assert!(count > 0);
+        let mut _state = vec![0; count];
+        _state[0] = total;
+        IntegerPartition { _state }
     }
 }
 
-impl std::ops::Add for Recipe {
-    type Output = Self;
+impl Iterator for IntegerPartition {
+    type Item = Vec<usize>;
 
-    fn add(self, other: Self) -> Self {
-        Self {
-            capacity: self.capacity + other.capacity,
-            durability: self.durability + other.durability,
-            flavor: self.flavor + other.flavor,
-            texture: self.texture + other.texture,
-            calories: self.calories + other.calories,
+    fn next(&mut self) -> Option<Self::Item> {
+        if self._state.is_empty() {
+            return None;
         }
-    }
-}
+        let result = self
+            ._state
+            .iter()
+            .chain([0].iter())
+            .tuple_windows()
+            .map(|(&x, &y)| x - y)
+            .collect_vec();
 
-impl std::ops::Mul<i64> for Recipe {
-    type Output = Self;
-
-    fn mul(self, rhs: i64) -> Self {
-        Self {
-            capacity: self.capacity * rhs,
-            durability: self.durability * rhs,
-            flavor: self.flavor * rhs,
-            texture: self.texture * rhs,
-            calories: self.calories * rhs,
+        for i in (1..self._state.len()).rev() {
+            if self._state[i] < self._state[i - 1] {
+                self._state[i] += 1;
+                for j in (i + 1)..self._state.len() {
+                    self._state[j] = 0;
+                }
+                return Some(result);
+            }
         }
+        self._state.clear();
+        Some(result)
     }
-}
-
-fn max_recipe_score(ingredients: &[Recipe], teaspoons: usize) -> i64 {
-    todo!()
 }
 
 pub fn day15_part1() {
-    std_iter!(Lines)
+    let l = std_iter!(Lines)
         .map(|l| parse_recipe(&l).expect("Parser Error").1)
-        .map(|r| {
-        });
-    todo!()
+        .collect_vec();
+
+    let m = IntegerPartition::new(100, l.len())
+        .map(|n| {
+            let r = l
+                .iter()
+                .zip(n.iter())
+                .map(|(ingredient, scale)| scale_recipe(ingredient, *scale as i64))
+                .reduce(add_recipe)
+                .unwrap();
+            score_recipe(&r)
+        })
+        .max()
+        .unwrap();
+
+    println!("{:?}", m);
 }
 
 pub fn day15_part2() {
-    todo!()
+    let l = std_iter!(Lines)
+        .map(|l| parse_recipe(&l).expect("Parser Error").1)
+        .collect_vec();
+
+    let m = IntegerPartition::new(100, l.len())
+        .filter_map(|n| {
+            let r = l
+                .iter()
+                .zip(n.iter())
+                .map(|(ingredient, scale)| scale_recipe(ingredient, *scale as i64))
+                .reduce(add_recipe)
+                .unwrap();
+            if r[4] == 500 {
+                Some(score_recipe(&r))
+            } else {
+                None
+            }
+        })
+        .max()
+        .unwrap();
+
+    println!("{:?}", m);
 }
 
 pub fn day16_part1() {

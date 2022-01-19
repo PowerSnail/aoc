@@ -1,8 +1,25 @@
 use std::str::FromStr;
 
-use nom::error::ErrorKind;
-use nom::{bytes::complete::take_while, combinator::fail, IResult, branch::alt};
+use nom::bytes::complete::{take, take_until};
 use nom::character::complete::char;
+use nom::error::{ErrorKind, ParseError};
+use nom::{branch::alt, bytes::complete::take_while, combinator::fail, IResult};
+use nom::{FindSubstring, InputIter, InputLength, InputTake};
+
+pub fn take_after<T, Input, Error: ParseError<Input>>(
+    tag: T,
+) -> impl Fn(Input) -> IResult<Input, Input, Error>
+where
+    Input: InputTake + FindSubstring<T> + InputIter,
+    T: InputLength + Clone,
+{
+    move |line: Input| {
+        let tag = tag.clone();
+        let tag_len = tag.input_len();
+        let (s, _) = take_until(tag)(line)?;
+        take(tag_len)(s)
+    }
+}
 
 pub fn is_digit(c: char) -> bool {
     c.is_digit(10)
