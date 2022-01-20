@@ -1,10 +1,14 @@
 pub use itertools::Itertools;
+pub use std::cmp::Reverse;
+pub use std::collections::BinaryHeap;
 pub use std::collections::HashMap;
+pub use std::collections::HashSet;
 pub use std::collections::VecDeque;
-use std::fmt::Debug;
+pub use std::fmt::Debug;
 pub use std::io::Read;
 
 pub use itertools::iproduct;
+pub use itertools::MinMaxResult;
 pub use ndarray::prelude::*;
 pub use ndarray::Array;
 pub use nom::branch::alt;
@@ -221,4 +225,26 @@ macro_rules! v_add {
     ($x:ident, $y:ident) => {
         $x.iter().zip($y.iter()).map(|(&x1, &x2)| x1 + x2).collect()
     };
+}
+
+pub fn make_neighbors(
+    y: usize,
+    x: usize,
+    width: usize,
+    height: usize,
+) -> impl Iterator<Item = (usize, usize)> {
+    let mut neighbors = vec![];
+    if y > 0 {
+        neighbors.push((y - 1, x));
+    }
+    if x > 0 {
+        neighbors.push((y, x - 1));
+    }
+    if y < height - 1 {
+        neighbors.push((y + 1, x));
+    }
+    if x < width - 1 {
+        neighbors.push((y, x + 1));
+    }
+    neighbors.into_iter()
 }
