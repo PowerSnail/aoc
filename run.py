@@ -1,3 +1,4 @@
+import math
 import subprocess as sp
 import sys
 import pathlib
@@ -88,6 +89,7 @@ def tests(year):
     results = {}
     for (day, part) in files:
         try:
+            console.print(f"Day {day} Part {part}")
             results[(day, part)] = run(year, day, part, False, False)
         except sp.CalledProcessError as err:
             if err.stdout:
@@ -101,7 +103,9 @@ def tests(year):
     table = Table(title=f"Year {year}")
     table.add_column("Day", justify="right")
     table.add_column("Part 1")
+    table.add_column("Part 1 Time")
     table.add_column("Part 2")
+    table.add_column("Part 2 Time")
 
     chars = {
         True: "✓",
@@ -110,9 +114,9 @@ def tests(year):
     }
 
     for day in range(1, 26):
-        day1 = results.get((day, 1), None)
-        day2 = results.get((day, 2), None)
-        table.add_row(str(day), chars[day1], chars[day2])
+        part1_result, part1_time = results.get((day, 1), (None, math.nan))
+        part2_result, part2_time = results.get((day, 2), (None, math.nan))
+        table.add_row(str(day), chars[part1_result], f"{part1_time:.4f}", chars[part2_result], f"{part2_time:.4f}")
 
     console.print(table)
 
@@ -151,8 +155,8 @@ def run(year, day, part, to_save, to_test):
     elif not to_test:
         if out_file.exists():
             result = shell(f"diff {out_file} - || true", input=answer)
-            return result.returncode == 0
-    return True
+            return result.returncode == 0, toc - tic
+    return True, toc - tic
 
 
 main()
