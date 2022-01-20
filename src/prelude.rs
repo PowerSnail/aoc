@@ -4,6 +4,7 @@ pub use std::collections::VecDeque;
 use std::fmt::Debug;
 pub use std::io::Read;
 
+pub use itertools::iproduct;
 pub use ndarray::prelude::*;
 pub use ndarray::Array;
 pub use nom::branch::alt;
