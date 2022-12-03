@@ -17,6 +17,7 @@ pub use nom::bytes::complete::tag;
 pub use nom::bytes::complete::take_till;
 pub use nom::bytes::complete::take_while;
 pub use nom::character::complete::alpha0;
+pub use nom::character::complete::multispace0;
 pub use nom::character::complete::alpha1;
 pub use nom::character::complete::alphanumeric0;
 pub use nom::character::complete::char;
@@ -35,6 +36,8 @@ pub use nom::sequence::delimited;
 pub use nom::sequence::pair;
 pub use nom::sequence::preceded;
 pub use nom::sequence::separated_pair;
+pub use nom::multi::many0;
+pub use nom::multi::many1;
 pub use nom::sequence::tuple;
 pub use nom::AsChar;
 pub use nom::IResult;
@@ -44,6 +47,9 @@ pub use crate::parsers::parse_i64;
 pub use crate::parsers::parse_u64;
 pub use crate::parsers::parse_usize;
 pub use crate::parsers::take_after;
+
+
+pub(crate) type ParseResult<'a, T> = IResult<&'a str, T>;
 
 #[macro_export]
 macro_rules! std_iter {
@@ -67,6 +73,17 @@ macro_rules! std_iter {
             .collect_vec()
     };
 }
+
+#[macro_export]
+macro_rules! chain {
+    [ $x:expr ] => {
+        $x
+    };
+    [ $first:expr, $($x:expr),+ ] => {
+        $first.chain(chain![ $($x),+ ])
+    };
+}
+
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Point {
@@ -204,27 +221,6 @@ impl<'a> FromIterator<&'a str> for NodeRegistration {
         }
         reg
     }
-}
-
-#[macro_export]
-macro_rules! v_max {
-    ($t:ident, $e:expr) => {
-        $t.iter().map(|&x| x.max($e)).collect()
-    };
-}
-
-#[macro_export]
-macro_rules! v_times {
-    ($t:ident, $e:expr) => {
-        $t.iter().map(|&x| x * $e).collect()
-    };
-}
-
-#[macro_export]
-macro_rules! v_add {
-    ($x:ident, $y:ident) => {
-        $x.iter().zip($y.iter()).map(|(&x1, &x2)| x1 + x2).collect()
-    };
 }
 
 pub fn make_neighbors(

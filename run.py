@@ -138,7 +138,7 @@ def run(year, day, part, to_save, to_test):
     result = shell(
         f"target/release/aoc {year} {day} {part} <{in_file}",
         stdout=sp.PIPE,
-        stderr=sp.PIPE,
+        stderr=None,
     )
     toc = time.time()
     print(f"Finished in {toc - tic:.4f}s")
