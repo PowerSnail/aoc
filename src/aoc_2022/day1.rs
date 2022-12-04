@@ -2,7 +2,6 @@ use crate::std_iter;
 
 fn input() -> Vec<u64> {
     std_iter!(Lines)
-        .chain([String::from("")].into_iter())
         .fold(vec![0u64], |mut queue, line| {
             if line.is_empty() {
                 queue.push(0);
