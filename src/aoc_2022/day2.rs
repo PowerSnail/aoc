@@ -1,11 +1,5 @@
 use crate::std_iter;
 
-enum Choice {
-    Rock,
-    Paper,
-    Scissor,
-}
-
 pub fn part1() {
     let score: u64 = std_iter!(Lines).map(|line| {
         let opponent = line.as_bytes()[0] - b'A';
