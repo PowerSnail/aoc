@@ -1,4 +1,4 @@
-use crate::{prelude::*, std_iter};
+use crate::std_iter;
 
 fn input() -> Vec<u64> {
     std_iter!(Lines)
@@ -10,7 +10,7 @@ fn input() -> Vec<u64> {
                 *queue.last_mut().unwrap() += line.parse::<u64>().unwrap();
             }
             queue
-    })
+        })
 }
 
 pub fn part1() {
