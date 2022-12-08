@@ -49,7 +49,7 @@ pub fn part1() {
     println!("{}", visible.len());
 }
 
-fn search_obstructed(mut trees: impl Iterator<Item = u8>, target: u8) -> usize {
+fn search_obstructed(trees: impl Iterator<Item = u8>, target: u8) -> usize {
     let mut i = 0;
     for n in trees {
         i += 1;
