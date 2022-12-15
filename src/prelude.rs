@@ -244,3 +244,5 @@ pub fn make_neighbors(
     }
     neighbors.into_iter()
 }
+
+type ParserResult<'a, T> = IResult<&'a str, T>;
