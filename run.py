@@ -1,162 +1,158 @@
-import math
-import subprocess as sp
-import sys
 import pathlib
-import functools
+import sqlite3
 import time
-import docopt
-import re
-from rich.console import Console
-from rich.table import Table
+import typer
+import subprocess as sp
+import functools
+import dotenv
+import requests
+import os
+
 
 shell = functools.partial(sp.run, shell=True, check=True, text=True)
-console = Console()
-
-CLI = """run.py
-
-Usage:
-    run.py [options] <year> <day> <part> 
-    run.py list [<year>]               
-    run.py tests [<year>]     
-    run.py -h | --help
-
-Options:
-    -t          Run Test.
-    -s          Save result.
-    -h --help   Show this screen.
-"""
 
 
-def main():
-    opts = docopt.docopt(CLI)
-
-    if opts["list"]:
-        if opts["<year>"]:
-            list_result(opts["<year>"])
-        else:
-            for y in pathlib.Path(f"outputs").iterdir():
-                list_result(y.name)
-
-    elif opts["tests"]:
-        if opts["<year>"]:
-            tests(opts["<year>"])
-        else:
-            for y in pathlib.Path(f"outputs").iterdir():
-                tests(y.name)
-    else:
-        try:
-            run(opts["<year>"], opts["<day>"], opts["<part>"], opts["-s"], opts["-t"])
-        except sp.CalledProcessError as err:
-            if err.stdout:
-                sys.stderr.write("STDOUT\n------\n")
-                sys.stderr.write(err.stdout)
-            if err.stderr:
-                sys.stderr.write("STDERR\n------\n")
-                sys.stderr.write(err.stderr)
-            sys.stderr.write("------\n")
+def init_db(path: str):
+    db = sqlite3.connect(path)
+    db.execute(
+        f"""
+        CREATE TABLE IF NOT EXISTS QA (
+            year INTEGER,
+            day INTEGER,
+            part INTEGER,
+            question TEXT,
+            answer TEXT
+        )"""
+    )
+    return db
 
 
-def list_result(year):
-    out_dir = pathlib.Path(f"outputs/{year}")
-    files = [
-        re.match("day(\d+)-part(\d+).txt", file.name)
-        for file in out_dir.glob("day*-part*.txt")
-    ]
-    files = {(int(match.group(1)), int(match.group(2))) for match in files}
-
-    table = Table(title=f"Year {year}")
-    table.add_column("Day", justify="right")
-    table.add_column("Part 1")
-    table.add_column("Part 2")
-
-    for day in range(1, 26):
-        table.add_row(
-            str(day),
-            ("✓" if (day, 1) in files else "❌"),
-            ("✓" if (day, 2) in files else "❌"),
-        )
-
-    console.print(table)
+def question_answers(db: sqlite3.Connection, year: int, day: int, part: int):
+    for row in db.execute(
+        f"""
+        SELECT
+            question,
+            answer
+        FROM
+            QA
+        WHERE
+            year = ?
+            AND day = ?
+            AND part = ?
+        ORDER BY
+            question""",
+        (year, day, part),
+    ).fetchall():
+        yield (row[0], row[1])
 
 
-def tests(year):
-    out_dir = pathlib.Path(f"outputs/{year}")
-    files = [
-        re.match("day(\d+)-part(\d+).txt", file.name)
-        for file in out_dir.glob("day*-part*.txt")
-    ]
-    files = {(int(match.group(1)), int(match.group(2))) for match in files}
-    results = {}
-    for (day, part) in files:
-        try:
-            console.print(f"Day {day} Part {part}")
-            results[(day, part)] = run(year, day, part, False, False)
-        except sp.CalledProcessError as err:
-            if err.stdout:
-                sys.stderr.write("STDOUT\n------\n")
-                sys.stderr.write(err.stdout)
-            if err.stderr:
-                sys.stderr.write("STDERR\n------\n")
-                sys.stderr.write(err.stderr)
-            sys.stderr.write("------\n")
-
-    table = Table(title=f"Year {year}")
-    table.add_column("Day", justify="right")
-    table.add_column("Part 1")
-    table.add_column("Part 1 Time")
-    table.add_column("Part 2")
-    table.add_column("Part 2 Time")
-
-    chars = {
-        True: "✓",
-        False: "❌",
-        None: "○",
-    }
-
-    for day in range(1, 26):
-        part1_result, part1_time = results.get((day, 1), (None, math.nan))
-        part2_result, part2_time = results.get((day, 2), (None, math.nan))
-        table.add_row(str(day), chars[part1_result], f"{part1_time:.4f}", chars[part2_result], f"{part2_time:.4f}")
-
-    console.print(table)
-
-
-def run(year, day, part, to_save, to_test):
-    out_dir = pathlib.Path(f"outputs/{year}")
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_file = out_dir / f"day{day}-part{part}.txt"
-
-    in_dir = pathlib.Path(f"inputs/{year}")
-    in_dir.mkdir(parents=True, exist_ok=True)
-    in_file = "inputs/test.txt" if to_test else in_dir / f"day{day}.txt"
-
-    print("Compiling...")
-    shell("cargo build --release", stdout=sp.DEVNULL, stderr=sp.DEVNULL)
-
-    print("Running solution...")
-    tic = time.time()
+def run(year: int, day: int, part: int, input: str):
+    tik = time.time()
     result = shell(
-        f"target/release/aoc {year} {day} {part} <{in_file}",
+        f"target/release/aoc {year} {day} {part}",
+        input=input,
+        encoding="ascii",
         stdout=sp.PIPE,
         stderr=None,
     )
-    toc = time.time()
-    print(f"Finished in {toc - tic:.4f}s")
-
-    answer = result.stdout
-    if result.stderr:
-        print(result.stderr)
-    print(answer)
-    shell("xsel -ib", input=answer)
-
-    if to_save:
-        with out_file.open("w") as file:
-            file.write(answer)
-    elif not to_test:
-        if out_file.exists():
-            result = shell(f"diff {out_file} - || true", input=answer)
-            return result.returncode == 0, toc - tic
-    return True, toc - tic
+    tok = time.time()
+    return (tok - tik, result.stdout.rstrip("\n"))
 
 
-main()
+app = typer.Typer()
+
+@app.command()
+def add_test(year: int, day: int, part: int, question: str, answer: str):
+    db = init_db("tests/qa.sqlite")
+    db.execute(
+        f"""
+        INSERT INTO QA (year, day, part, question, answer)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (year, day, part, question, answer),
+    )
+    db.commit()
+
+
+@app.command()
+def download_input(year: int, day: int):
+    db = init_db("inputs/qa.sqlite")
+    if db.execute("SELECT COUNT(*) FROM QA WHERE year=? AND day=?;", (year, day)).fetchone()[0] != 0:
+        print("Already downloaded")
+        return
+
+    dotenv.load_dotenv()
+    aoc_session = os.environ.get("AOC_SESSION")
+    response = requests.get(f"https://adventofcode.com/{year}/day/{day}/input", cookies={"session": aoc_session})
+    response.raise_for_status()
+
+    db.execute(f"""
+        INSERT INTO QA (year, day, part, question, answer)
+        VALUES (?, ?, ?, ?, NULL)
+        """, (year, day, 1, response.text))
+    db.execute(f"""
+        INSERT INTO QA (year, day, part, question, answer)
+        VALUES (?, ?, ?, ?, NULL)
+        """, (year, day, 2, response.text))
+    db.commit()
+
+
+@app.command()
+def test(year: int, day: int, part: int):
+    shell("cargo build --release", stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+
+    db = init_db("tests/qa.sqlite")    
+    for question, answer in question_answers(db, year, day, part):
+        try:
+            result = run(year, day, part, question)
+        except sp.CalledProcessError as e:
+            ...
+            print(f"Test failed. Process exit with nonzero return code")
+            break
+    
+        if result[1] != answer:
+            print(f"Test failed. Expecting {answer!r} but got {result[1]!r}")
+            break
+    else:
+        print("Test passed")
+
+
+@app.command()
+def real(year: int, day: int, part: int, save: bool = False):
+    shell("cargo build --release", stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+    db = init_db("inputs/qa.sqlite")    
+    for question, answer in question_answers(db, year, day, part):
+        try:
+            result = run(year, day, part, question)
+        except sp.CalledProcessError as e:
+            ...
+            print(f"Failed. Process exit with nonzero return code")
+            break
+        
+        if answer != None and result[1] != answer:
+            print(f"Answer changed. Expecting {answer!r} but got {result[1]!r}")
+            break
+    
+        print(result[1])
+        print("Took {:.2f}ms".format(result[0] * 1000))
+        shell("xsel -ib", input=result[1])
+
+        if save:
+            db.execute(
+                f"""
+                UPDATE QA 
+                SET 
+                    answer = ? 
+                WHERE 
+                    year = ? 
+                    AND day = ? 
+                    AND part = ? 
+                    AND question = ?
+                """,
+                (result[1], year, day, part, question),
+            )
+            db.commit()
+
+
+if __name__ == "__main__":
+    app()
