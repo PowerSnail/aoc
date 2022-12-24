@@ -60,6 +60,13 @@ macro_rules! std_iter {
     (Bytes) => {
         std::io::stdin().bytes().map(Result::unwrap)
     };
+    (OneString) => {
+        {
+            let mut s = String::new();
+            std::io::stdin().read_to_string(&mut s).expect("Failed to read to string");
+            s
+        }
+    };
     (SplitBy $c:expr) => {
         std::io::stdin().lines().next().unwrap().unwrap().split($c)
     };
