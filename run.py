@@ -99,10 +99,12 @@ def download_input(year: int, day: int):
 
 @app.command()
 def test(year: int, day: int, part: int):
+    print("Compiling")
     shell("cargo build --release", stdout=sp.DEVNULL, stderr=sp.DEVNULL)
 
     db = init_db("tests/qa.sqlite")    
-    for question, answer in question_answers(db, year, day, part):
+    for i, (question, answer) in enumerate(question_answers(db, year, day, part)):
+        print(f"Running test {i}")
         try:
             result = run(year, day, part, question)
         except sp.CalledProcessError as e:
@@ -119,9 +121,11 @@ def test(year: int, day: int, part: int):
 
 @app.command()
 def real(year: int, day: int, part: int, save: bool = False):
+    print("Compiling")
     shell("cargo build --release", stdout=sp.DEVNULL, stderr=sp.DEVNULL)
     db = init_db("inputs/qa.sqlite")    
-    for question, answer in question_answers(db, year, day, part):
+    for i, (question, answer) in enumerate(question_answers(db, year, day, part)):
+        print(f"Running program {i}")
         try:
             result = run(year, day, part, question)
         except sp.CalledProcessError as e:
