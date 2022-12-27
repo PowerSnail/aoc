@@ -28,23 +28,20 @@ fn scanline(start: (i64, i64), end: (i64, i64)) -> Vec<(i64, i64)> {
     unreachable!()
 }
 
-fn sand_drop(x: i64, y: i64, bottom: i64, occupied: &HashSet<(i64, i64)>) -> Option<(i64, i64)> {
-    let mut x = x;
-    for y in y..bottom {
-        if !occupied.contains(&(x, y + 1)) {
-            continue;
-        }
-        if !occupied.contains(&(x - 1, y + 1)) {
-            x -= 1;
-            continue;
-        }
-        if !occupied.contains(&(x + 1, y + 1)) {
-            x += 1;
-            continue;
-        }
-        return Some((x, y));
+fn sand_drop(x: i64, y: i64, bottom: i64, occupied: &HashSet<(i64, i64)>) -> (i64, i64) {
+    if y == bottom {
+        return (x, y);
     }
-    return None;
+    if !occupied.contains(&(x, y + 1)) {
+        return sand_drop(x, y + 1, bottom, occupied);
+    }
+    if !occupied.contains(&(x - 1, y + 1)) {
+        return sand_drop(x - 1, y + 1, bottom, occupied);
+    }
+    if !occupied.contains(&(x + 1, y + 1)) {
+        return sand_drop(x + 1, y + 1, bottom, occupied);
+    }
+    return (x, y);
 }
 
 pub fn part1() {
@@ -60,10 +57,11 @@ pub fn part1() {
         })
         .collect();
 
-    let bottom = occupied.iter().map(|(x, y)| *y).max().unwrap();
+    let bottom = occupied.iter().map(|(_, y)| *y).max().unwrap();
 
     for count in 0.. {
-        if let Some(sand) = sand_drop(500, 0, bottom, &occupied) {
+        let sand = sand_drop(500, 0, bottom, &occupied);
+        if sand.1 < bottom {
             occupied.insert(sand);
         } else {
             println!("{}", count);
@@ -73,5 +71,27 @@ pub fn part1() {
 }
 
 pub fn part2() {
-    todo!()
+    let mut occupied: HashSet<(i64, i64)> = parse_input(stdio_string().as_str())
+        .unwrap()
+        .1
+        .into_iter()
+        .flat_map(|path| {
+            (0..path.len() - 1)
+                .flat_map(|i| scanline(path[i], path[i + 1]).into_iter())
+                .collect_vec()
+                .into_iter()
+        })
+        .collect();
+
+    let bottom = occupied.iter().map(|(_, y)| *y).max().unwrap() + 1;
+
+    for count in 0.. {
+        let sand = sand_drop(500, 0, bottom, &occupied);
+        if sand == (500, 0) {
+            println!("{}", count + 1);
+            break;
+        } else {
+            occupied.insert(sand);
+        }
+    }
 }
