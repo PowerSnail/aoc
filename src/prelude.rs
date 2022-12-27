@@ -52,6 +52,14 @@ pub use crate::parsers::take_after;
 
 pub(crate) type ParseResult<'a, T> = IResult<&'a str, T>;
 
+pub fn stdio_string() -> std::string::String {
+    let mut s = String::new();
+    std::io::stdin()
+        .read_to_string(&mut s)
+        .expect("Failed to read to string");
+    s
+}
+
 #[macro_export]
 macro_rules! std_iter {
     (Lines) => {
@@ -60,13 +68,13 @@ macro_rules! std_iter {
     (Bytes) => {
         std::io::stdin().bytes().map(Result::unwrap)
     };
-    (OneString) => {
-        {
-            let mut s = String::new();
-            std::io::stdin().read_to_string(&mut s).expect("Failed to read to string");
-            s
-        }
-    };
+    (OneString) => {{
+        let mut s = String::new();
+        std::io::stdin()
+            .read_to_string(&mut s)
+            .expect("Failed to read to string");
+        s
+    }};
     (SplitBy $c:expr) => {
         std::io::stdin().lines().next().unwrap().unwrap().split($c)
     };
