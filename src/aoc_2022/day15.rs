@@ -29,23 +29,40 @@ const TARGET_ROW: i64 = 2_000_000;
 
 pub fn part1() {
     let reports = parse_input(stdio_string().as_str()).unwrap().1;
-    let mut dead_zone : HashSet<i64> = HashSet::new();
     let mut existing: HashSet<i64> = HashSet::new();
+    let mut dead_zones = Vec::new();
+
     for report in reports {
         let distance = report.distance();
         let horizontal_max_delta = distance - (report.sensor.1 - TARGET_ROW).abs();
         if horizontal_max_delta >= 0 {
-            dead_zone.extend(report.sensor.0 - horizontal_max_delta..=report.sensor.0 + horizontal_max_delta);
+            let range = (report.sensor.0 - horizontal_max_delta, report.sensor.0 + horizontal_max_delta + 1);
+            dead_zones.push(range);
         }
 
         if report.beacon.1 == TARGET_ROW {
             existing.insert(report.beacon.0);
         }
     }
-    let dead_zone = dead_zone.difference(&existing);
-    println!("{}", dead_zone.count());
+
+    dead_zones.sort();
+    let mut merged_dead_zones = Vec::new();
+    merged_dead_zones.push(dead_zones[0]);
+    
+    for (lo, hi)  in dead_zones.into_iter().skip(1) {
+        let latest = merged_dead_zones.pop().unwrap();
+        if lo <= latest.1 {
+            merged_dead_zones.push((latest.0, hi))
+        } else {
+            merged_dead_zones.push(latest);
+            merged_dead_zones.push((lo, hi));
+        }
+    }
+
+    let total: i64 = merged_dead_zones.into_iter().map(|(lo, hi)| hi - lo).sum();
+
+    println!("{}", total as usize - existing.len());
 }
 
 pub fn part2() {
-    todo!();
 }
