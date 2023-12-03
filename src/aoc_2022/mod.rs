@@ -13,6 +13,7 @@ mod day12;
 mod day13;
 mod day14;
 mod day15;
+mod day16;
 
 pub const SOLUTIONS: &[[fn() -> (); 2]] = &[
     [day1::part1, day1::part2],
@@ -30,4 +31,5 @@ pub const SOLUTIONS: &[[fn() -> (); 2]] = &[
     [day13::part1, day13::part2],
     [day14::part1, day14::part2],
     [day15::part1, day15::part2],
+    [day16::part1, day16::part2],
 ];
